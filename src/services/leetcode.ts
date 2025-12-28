@@ -1,18 +1,16 @@
 import axios from "axios";
 
-export interface LeetCodeUser {
-  username: string;
-  totalSolved: number;
-}
-
-export async function getLeetCodeUser(username: string): Promise<LeetCodeUser> {
+export async function getLeetCodeUser(username: string) {
   try {
     const query = {
-      operationName: "getUserProfile",
       query: `
         query getUserProfile($username: String!) {
           matchedUser(username: $username) {
-            submitStats: submitStatsGlobal {
+            username
+            profile {
+              ranking
+            }
+            submitStats {
               acSubmissionNum {
                 difficulty
                 count
@@ -21,28 +19,58 @@ export async function getLeetCodeUser(username: string): Promise<LeetCodeUser> {
           }
         }
       `,
-      variables: { username }
+      variables: {
+        username,
+      },
     };
 
-    const { data } = await axios.post("https://leetcode.com/graphql", query, {
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0"
+    const response = await axios.post(
+      "https://leetcode.com/graphql",
+      query,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
 
-    if (!data?.data?.matchedUser) {
-      throw new Error("User not found");
+    const user = response.data?.data?.matchedUser;
+
+    if (!user) {
+      throw new Error("LeetCode user not found");
     }
 
-    const acSubmissions = data.data.matchedUser.submitStats.acSubmissionNum;
+    const totalSolved = user.submitStats.acSubmissionNum.reduce(
+      (sum: number, item: any) => sum + item.count,
+      0
+    );
 
-    // Total solved = sum of all difficulties
-    const totalSolved = acSubmissions.reduce((sum: number, item: any) => sum + item.count, 0);
+    const breakdown = user.submitStats.acSubmissionNum.reduce(
+  (acc: any, item: any) => {
+    acc[item.difficulty.toLowerCase()] = item.count;
+    return acc;
+  },
+  {}
+);
 
-    return { username, totalSolved };
+return {
+  handle: user.username,
+  platform: "leetcode" as const,
+
+  totalSolved:
+    (breakdown.easy || 0) +
+    (breakdown.medium || 0) +
+    (breakdown.hard || 0),
+
+  easySolved: breakdown.easy || 0,
+  mediumSolved: breakdown.medium || 0,
+  hardSolved: breakdown.hard || 0,
+
+  history: [], // LeetCode has no historical API
+};
+
   } catch (err: any) {
-    console.error(err.message);
-    throw new Error("Failed to fetch LeetCode data — maybe username is wrong");
+    console.error("LEETCODE SERVICE ERROR:", err.message);
+    throw err;
   }
 }
