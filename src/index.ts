@@ -1,122 +1,128 @@
 import express from "express";
-import { getUserInfo } from "./services/codeforces";
+import cors from "cors";
+import axios from "axios"; // ✅ REQUIRED
+
 import { connectDB } from "./db/mongo";
 import { User } from "./models/User";
+
+import { getUserInfo } from "./services/codeforces";
 import { getLeetCodeUser } from "./services/leetcode";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
+/* ===================== MIDDLEWARE ===================== */
+app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("CPulse backend running");
+/* ===================== HEALTH CHECK ===================== */
+app.get("/", (_req, res) => {
+  res.send("CPulse backend is running 🚀");
 });
 
-app.get("/leaderboard/combined", async (req, res) => {
+/* ======================================================
+   USER GROWTH (CORE ENDPOINT)
+   ====================================================== */
+app.get("/user/:platform/:username/history", async (req, res) => {
+  const { platform, username } = req.params;
+
   try {
-    // Fetch top Codeforces users
-    const cfUsers = await User.find({ platform: "codeforces" })
-      .sort({ rating: -1 })
-      .limit(50)
-      .select("-__v"); // exclude internal fields
+    let user;
 
-    // Fetch top LeetCode users
-    const lcUsers = await User.find({ platform: "leetcode" })
-      .sort({ totalSolved: -1 })
-      .limit(50)
-      .select("-__v");
+    const existing = await User.findOne({
+      handle: username,
+      platform,
+    });
 
-    // Merge into one array
-    const combined = [...cfUsers, ...lcUsers];
+    if (existing?.history?.length) {
+      return res.json({
+        platform: existing.platform,
+        handle: existing.handle,
+        rating: existing.rating,
+        maxRating: existing.maxRating,
+        rank: existing.rank,
+        maxRank: existing.maxRank,
+        totalSolved: existing.totalSolved,
+        history: existing.history || [],
+      });
+    }
 
-    // Optional: sort combined by a "score" field if you want one metric
-    // For now we just return CF and LC together
-    res.json(combined);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    let normalizedData;
 
-app.get("/leetcode/save/:username", async (req, res) => {
-  try {
-    const { username } = req.params;
+    if (platform === "codeforces") {
+      normalizedData = await getUserInfo(username);
+    } else if (platform === "leetcode") {
+      normalizedData = await getLeetCodeUser(username);
+    } else {
+      return res.status(400).json({ error: "Unsupported platform" });
+    }
 
-    // Fetch data from LeetCode
-    const data = await getLeetCodeUser(username);
-
-    // Save or update in MongoDB
-    const user = await User.findOneAndUpdate(
-      { handle: data.username, platform: "leetcode" },
-      { ...data, platform: "leetcode" },
+    user = await User.findOneAndUpdate(
+      { handle: normalizedData.handle, platform },
+      { ...normalizedData, platform },
       { upsert: true, new: true }
     );
 
-    res.json(user);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return res.json({
+      platform: user.platform,
+      handle: user.handle,
+      rating: user.rating,
+      maxRating: user.maxRating,
+      rank: user.rank,
+      maxRank: user.maxRank,
+      totalSolved: user.totalSolved,
+      history: user.history || [],
+    });
+  } catch (error: any) {
+    console.error("USER HISTORY ERROR:", error.message);
+    return res.status(500).json({
+      error: "Failed to fetch user data",
+    });
   }
 });
 
 
-app.get("/codeforces/:handle", async (req, res) => {
+/* ===================== LEADERBOARD ===================== */
+app.get("/leaderboard", async (_req, res) => {
   try {
-    const { handle } = req.params;
-    const data = await getUserInfo(handle);
+    const users = await User.find({ platform: "codeforces" })
+      .sort({ rating: -1 })
+      .limit(50)
+      .select("-__v");
 
-    // Save or update user in MongoDB
-    await User.findOneAndUpdate(
-      { handle: data.handle }, // find by handle
-      data,                    // update with latest data
-      { upsert: true, new: true } // create if not exists, return updated doc
-    );
-
-    res.json(data); // return the normalized data
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch or save Codeforces data" });
-  }
-});
-
-// Leaderboard endpoint — returns top Codeforces users
-app.get("/leaderboard", async (req, res) => {
-  try {
-    // Fetch all users, sorted by rating descending
-    const users = await User.find().sort({ rating: -1 }).limit(50);
     res.json(users);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
+    res.status(500).json({
+      error: "Failed to fetch leaderboard",
+    });
   }
 });
 
-// Personal growth endpoint — returns historical ratings for a user
-app.get("/growth/:handle", async (req, res) => {
+/* ===================== COMBINED LEADERBOARD ===================== */
+app.get("/leaderboard/combined", async (_req, res) => {
   try {
-    const { handle } = req.params;
+    const cfUsers = await User.find({ platform: "codeforces" })
+      .sort({ rating: -1 })
+      .limit(50);
 
-    // Fetch all historical updates for this user
-    const userHistory = await User.find({ handle }).sort({ updatedAt: 1 });
+    const lcUsers = await User.find({ platform: "leetcode" })
+      .sort({ totalSolved: -1 })
+      .limit(50);
 
-    // Map to only relevant info for charts
-    const growthData = userHistory.map((u) => ({
-      rating: u.rating,
-      date: u.updatedAt,
-    }));
-
-    res.json(growthData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch personal growth data" });
+    res.json([...cfUsers, ...lcUsers]);
+  } catch (error: any) {
+    res.status(500).json({
+      error: error.message,
+    });
   }
 });
 
-// Class-wise leaderboard
+/* ===================== CLASS LEADERBOARD ===================== */
 app.get("/leaderboard/class/:classId", async (req, res) => {
   try {
     const { classId } = req.params;
 
-    // Fetch top users in that class
     const users = await User.find({ classId })
       .sort({ rating: -1 })
       .limit(50);
@@ -124,13 +130,15 @@ app.get("/leaderboard/class/:classId", async (req, res) => {
     res.json(users);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch class leaderboard" });
+    res.status(500).json({
+      error: "Failed to fetch class leaderboard",
+    });
   }
 });
 
-
+/* ===================== DB + SERVER ===================== */
 connectDB();
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`CPulse backend running on port ${PORT}`);
 });
