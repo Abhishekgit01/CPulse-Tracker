@@ -2,28 +2,41 @@ import mongoose, { Schema, Document } from "mongoose";
 
 /* ===================== TYPES ===================== */
 
+/**
+ * A single point used for growth charts
+ */
 export interface GrowthPoint {
   date: string;   // YYYY-MM-DD
-  score: number;  // rating / solved count
+  score: number;  // rating / solved count / cpulse score
 }
 
+/**
+ * User document interface
+ */
 export interface IUser extends Document {
   handle: string;
   platform: "codeforces" | "leetcode";
 
-  // Codeforces-specific
+  /* ---------- Codeforces ---------- */
   rating?: number;
   maxRating?: number;
   rank?: string;
   maxRank?: string;
 
-  // LeetCode-specific
+  /* ---------- LeetCode ---------- */
   totalSolved?: number;
 
-  // Growth (used by frontend charts)
+  /* ---------- CPulse ---------- */
+  cpulseRating: number;
+
+  /* ---------- Growth ---------- */
   history: GrowthPoint[];
 
+  /* ---------- Grouping ---------- */
   classId?: string;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /* ===================== SCHEMA ===================== */
@@ -51,7 +64,13 @@ const UserSchema = new Schema<IUser>(
     /* ---------- LeetCode fields ---------- */
     totalSolved: { type: Number },
 
-    /* ---------- Growth history ---------- */
+    /* ---------- CPulse Rating ---------- */
+    cpulseRating: {
+      type: Number,
+      default: 0,
+    },
+
+    /* ---------- Growth History ---------- */
     history: [
       {
         date: { type: String, required: true },
@@ -59,10 +78,11 @@ const UserSchema = new Schema<IUser>(
       },
     ],
 
-    /* ---------- Optional grouping ---------- */
+    /* ---------- Class / Group ---------- */
     classId: {
       type: String,
       default: "general",
+      index: true,
     },
   },
   {
@@ -73,11 +93,17 @@ const UserSchema = new Schema<IUser>(
 /* ===================== INDEXES ===================== */
 
 /**
- * IMPORTANT:
- * Same handle can exist on different platforms.
+ * Same handle can exist on different platforms
  * tourist@codeforces ≠ tourist@leetcode
  */
 UserSchema.index({ handle: 1, platform: 1 }, { unique: true });
+
+/* ===================== MIDDLEWARE ===================== */
+
+/**
+ * Automatically recalculate CPulse Rating
+ * whenever user data changes
+ *
 
 /* ===================== MODEL ===================== */
 
