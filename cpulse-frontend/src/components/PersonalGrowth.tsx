@@ -48,6 +48,9 @@ export default function PersonalGrowth() {
   const [data, setData] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [classId, setClassId] = useState("");
+  const [classMessage, setClassMessage] = useState("");
+
 
   useEffect(() => {
     if (!username || !platform) {
@@ -108,6 +111,46 @@ export default function PersonalGrowth() {
           Platform: {data.platform}
         </p>
       </div>
+
+      {/* ADD TO CLASS */}
+<div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex gap-3 items-center">
+  <input
+    value={classId}
+    onChange={(e) => setClassId(e.target.value)}
+    placeholder="Enter class (e.g. CS-A)"
+    className="flex-1 px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+  />
+
+  <button
+    onClick={() => {
+      if (!classId) return;
+
+      axios
+        .post("http://localhost:5000/class/add", {
+          handle: data.handle,
+          platform: data.platform,
+          classId,
+        })
+        .then(() => {
+          setClassMessage("User added to class successfully ✅");
+          setClassId("");
+        })
+        .catch(() => {
+          setClassMessage("Failed to add user to class ❌");
+        });
+    }}
+    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+  >
+    Add to Class
+  </button>
+</div>
+
+{classMessage && (
+  <p className="text-sm text-center text-green-600 dark:text-green-400">
+    {classMessage}
+  </p>
+)}
+
 
       {/* ===================== STATS ===================== */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

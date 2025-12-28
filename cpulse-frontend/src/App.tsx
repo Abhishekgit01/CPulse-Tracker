@@ -1,9 +1,10 @@
 import { Routes, Route, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import ClassLeaderboard from "./components/ClassLeaderboard";
 import Leaderboard from "./components/Leaderboard";
 import PersonalGrowth from "./components/PersonalGrowth";
 import UserSearch from "./components/UserSearch";
+import Home from "./components/Home";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -44,17 +45,19 @@ export default function App() {
           </Link>
 
           <Link
-            to="/"
+            to="/search"
             className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
           >
             Search
           </Link>
 
+          <Link to="/class">Class Leaderboard</Link>
+
           <Link
             to="/leaderboard"
             className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
           >
-            Leaderboard
+            Global Rank
           </Link>
         </div>
 
@@ -70,11 +73,14 @@ export default function App() {
       {/* ================= MAIN CONTENT ================= */}
       <main className="max-w-6xl mx-auto p-6">
         <Routes>
+              <Route path="/" element={<Home />} />
+
           {/* Home = Search users */}
-          <Route path="/" element={<UserSearch />} />
+          <Route path="/search" element={<UserSearch />} />
 
           {/* Leaderboard */}
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/class" element={<ClassLeaderboard />} />
 
           {/* Personal growth (dynamic users) */}
           <Route

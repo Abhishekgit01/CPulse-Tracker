@@ -4,6 +4,8 @@ import axios from "axios"; // ✅ REQUIRED
 
 import { connectDB } from "./db/mongo";
 import { User } from "./models/User";
+import { calculateCPulseRating } from "./services/cpulseRating";
+
 
 import { getUserInfo } from "./services/codeforces";
 import { getLeetCodeUser } from "./services/leetcode";
@@ -12,7 +14,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 /* ===================== MIDDLEWARE ===================== */
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
+
 app.use(express.json());
 
 /* ===================== HEALTH CHECK ===================== */
@@ -63,6 +68,10 @@ app.get("/user/:platform/:username/history", async (req, res) => {
       { upsert: true, new: true }
     );
 
+    user.cpulseRating = calculateCPulseRating(user);
+await user.save();
+
+
     return res.json({
       platform: user.platform,
       handle: user.handle,
@@ -85,19 +94,35 @@ app.get("/user/:platform/:username/history", async (req, res) => {
 /* ===================== LEADERBOARD ===================== */
 app.get("/leaderboard", async (_req, res) => {
   try {
-    const users = await User.find({ platform: "codeforces" })
-      .sort({ rating: -1 })
+    const users = await User.find()
+      .sort({ cpulseRating: -1 })
       .limit(50)
       .select("-__v");
 
     res.json(users);
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       error: "Failed to fetch leaderboard",
     });
   }
 });
+
+
+// Get all existing classes
+app.get("/classes", async (_req, res) => {
+  try {
+    const classes = await User.distinct("classId", {
+      classId: { $ne: "general" },
+    });
+
+    res.json(classes);
+  } catch (err: any) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 
 /* ===================== COMBINED LEADERBOARD ===================== */
 app.get("/leaderboard/combined", async (_req, res) => {
@@ -124,17 +149,53 @@ app.get("/leaderboard/class/:classId", async (req, res) => {
     const { classId } = req.params;
 
     const users = await User.find({ classId })
-      .sort({ rating: -1 })
-      .limit(50);
+      .sort({ cpulseRating: -1 })
+      .limit(50)
+      .select("-__v");
 
     res.json(users);
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       error: "Failed to fetch class leaderboard",
     });
   }
 });
+
+
+// Assign user to a class
+app.post("/class/add", async (req, res) => {
+  const { handle, platform, classId } = req.body;
+
+  if (!handle || !platform || !classId) {
+    return res.status(400).json({
+      error: "handle, platform, and classId are required",
+    });
+  }
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { handle, platform },
+      { classId },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found. Search user first.",
+      });
+    }
+
+    res.json({
+      message: "User added to class successfully",
+      user,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 
 /* ===================== DB + SERVER ===================== */
 connectDB();
