@@ -1,24 +1,43 @@
 import { Routes, Route, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import ClassLeaderboard from "./components/ClassLeaderboard";
+import CollegeDashboard from "./components/CollegeDashboard";
 import Leaderboard from "./components/Leaderboard";
 import PersonalGrowth from "./components/PersonalGrowth";
+import CodeChefStats from "./components/CodeChefStats";
 import UserSearch from "./components/UserSearch";
 import Home from "./components/Home";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import AICoach from "./components/AICoach";
+import Compare from "./components/Compare";
+import { useAuth } from "./context/AuthContext";
+// Enhanced UI Components
+import EnhancedLeaderboard from "./components/EnhancedLeaderboard";
+import EnhancedCodeChefStats from "./components/EnhancedCodeChefStats";
+import ComparisonView from "./components/ComparisonView";
+import OnboardingWizard from "./components/OnboardingWizard";
+import StatsDashboard from "./components/StatsDashboard";
+import ProblemOfTheDay from "./components/ProblemOfTheDay";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
+  const [enhancedUI, setEnhancedUI] = useState(false);
+  const { token, logout } = useAuth();
 
-  // Load saved theme on first render
+  /* ================= LOAD THEME ================= */
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
+    const savedUI = localStorage.getItem("enhancedUI");
     if (savedTheme === "dark") {
       setDarkMode(true);
       document.documentElement.classList.add("dark");
     }
+    if (savedUI === "true") {
+      setEnhancedUI(true);
+    }
   }, []);
 
-  // Toggle dark mode
+  /* ================= TOGGLE THEME ================= */
   const toggleDarkMode = () => {
     const next = !darkMode;
     setDarkMode(next);
@@ -32,10 +51,18 @@ export default function App() {
     }
   };
 
+  /* ================= TOGGLE ENHANCED UI ================= */
+  const toggleEnhancedUI = () => {
+    const next = !enhancedUI;
+    setEnhancedUI(next);
+    localStorage.setItem("enhancedUI", String(next));
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
       {/* ================= NAVBAR ================= */}
       <nav className="bg-white dark:bg-gray-800 shadow px-6 py-4 flex items-center justify-between">
+        {/* LEFT */}
         <div className="flex items-center gap-6">
           <Link
             to="/"
@@ -51,7 +78,12 @@ export default function App() {
             Search
           </Link>
 
-          <Link to="/class">Class Leaderboard</Link>
+          <Link
+            to="/college"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            College Dashboard
+          </Link>
 
           <Link
             to="/leaderboard"
@@ -59,34 +91,123 @@ export default function App() {
           >
             Global Rank
           </Link>
+
+          <Link
+            to="/compare"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            Compare
+          </Link>
+
+          <Link
+            to="/problem-of-day"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            📝 Daily
+          </Link>
+
+          {enhancedUI && (
+            <Link
+              to="/dashboard"
+              className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+            >
+              📊 Stats
+            </Link>
+          )}
         </div>
 
-        {/* Dark mode toggle */}
-        <button
-          onClick={toggleDarkMode}
-          className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-        >
-          {darkMode ? "☀️ Light" : "🌙 Dark"}
-        </button>
+        {/* RIGHT */}
+        <div className="flex items-center gap-4">
+          {/* UI Version Toggle */}
+          <button
+            onClick={toggleEnhancedUI}
+            title={enhancedUI ? "Switch to Classic UI" : "Try Enhanced UI"}
+            className={`px-3 py-2 rounded-lg transition ${enhancedUI
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              }`}
+          >
+            {enhancedUI ? "✨ Enhanced" : "Classic"}
+          </button>
+
+          {/* Dark mode toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+          >
+            {darkMode ? "☀️ Light" : "🌙 Dark"}
+          </button>
+
+          {/* Auth buttons */}
+          {!token ? (
+            <>
+              <Link
+                to="/login"
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+              >
+                Login
+              </Link>
+
+              <Link
+                to="/register"
+                className="px-4 py-2 rounded-lg bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+              >
+                Register
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={logout}
+              className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+            >
+              Logout
+            </button>
+          )}
+        </div>
       </nav>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="max-w-6xl mx-auto p-6">
+      <main className={`${enhancedUI ? "" : "max-w-6xl"} mx-auto p-6`}>
         <Routes>
-              <Route path="/" element={<Home />} />
+          {/* Home */}
+          <Route path="/" element={<Home />} />
 
-          {/* Home = Search users */}
+          {/* Search */}
           <Route path="/search" element={<UserSearch />} />
 
-          {/* Leaderboard */}
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/class" element={<ClassLeaderboard />} />
-
-          {/* Personal growth (dynamic users) */}
+          {/* Leaderboards - Classic vs Enhanced */}
           <Route
-            path="/growth/:username/:platform"
+            path="/leaderboard"
+            element={enhancedUI ? <EnhancedLeaderboard /> : <Leaderboard />}
+          />
+          <Route path="/college" element={<CollegeDashboard />} />
+
+          {/* Personal Growth */}
+          <Route
+            path="/growth/:platform/:username"
             element={<PersonalGrowth />}
           />
+
+          {/* CodeChef Stats - Classic vs Enhanced */}
+          <Route
+            path="/codechef/:username"
+            element={enhancedUI ? <EnhancedCodeChefStats /> : <CodeChefStats />}
+          />
+
+          {/* Enhanced Features */}
+          <Route path="/compare" element={<Compare />} />
+          <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
+
+          {enhancedUI && (
+            <>
+              <Route path="/onboarding" element={<OnboardingWizard />} />
+              <Route path="/dashboard" element={<StatsDashboard />} />
+            </>
+          )}
+
+          {/* Auth */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Fallback */}
           <Route
@@ -99,6 +220,9 @@ export default function App() {
           />
         </Routes>
       </main>
+
+      {/* CP Tutor (Floating) */}
+      <AICoach />
     </div>
   );
 }

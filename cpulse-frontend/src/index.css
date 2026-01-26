@@ -1,3 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer utilities {
+  .animate-golden-glow {
+    animation: golden-glow 3s infinite alternate;
+  }
+
+  @keyframes golden-glow {
+    0% {
+      box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ff8c00;
+    }
+
+    100% {
+      box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700, 0 0 60px #ff8c00;
+    }
+  }
+
+  .text-golden-gradient {
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+}

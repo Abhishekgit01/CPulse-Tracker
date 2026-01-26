@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import ProblemOfTheDay from "./ProblemOfTheDay";
 
 // --- Types ---
 interface Star {
@@ -11,25 +12,25 @@ interface Star {
 
 const Icons = {
   Search: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
   ),
   Trophy: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>
   ),
   Users: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
   ),
   BarChart: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10" /><line x1="18" x2="18" y1="20" y2="4" /><line x1="6" x2="6" y1="20" y2="16" /></svg>
   ),
   Code: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
   ),
   Zap: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
   ),
   ArrowRight: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
   )
 };
 
@@ -42,7 +43,7 @@ const WarpBackground: React.FC = () => {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return; // Fixes 'ctx is possibly null'
-    
+
     let width = window.innerWidth;
     let height = window.innerHeight;
     canvas.width = width;
@@ -81,10 +82,10 @@ const WarpBackground: React.FC = () => {
         const x = cx + (star.x / star.z) * width;
         const y = cy + (star.y / star.z) * height;
         const size = (1 - star.z / width) * 4;
-        
+
         ctx.beginPath();
         ctx.fillStyle = star.color;
-        ctx.fillRect(x, y, size, size); 
+        ctx.fillRect(x, y, size, size);
       });
 
       animationFrameId = requestAnimationFrame(render);
@@ -109,8 +110,8 @@ const WarpBackground: React.FC = () => {
   }, []);
 
   return (
-    <canvas 
-      ref={canvasRef} 
+    <canvas
+      ref={canvasRef}
       className="fixed top-0 left-0 w-full h-full pointer-events-none z-0 bg-[#0B1120]"
     />
   );
@@ -130,15 +131,15 @@ export default function Home() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen w-full relative overflow-x-hidden text-gray-900 dark:text-white selection:bg-indigo-500 selection:text-white"
       onMouseMove={handleMouseMove}
     >
       <WarpBackground />
-      
+
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-[#0B1120]/80 via-transparent to-[#0B1120] pointer-events-none"></div>
 
-      <div 
+      <div
         className="relative z-10 flex flex-col items-center"
         style={{
           transform: `translate(${-mousePosition.x}px, ${-mousePosition.y}px)`,
@@ -161,7 +162,7 @@ export default function Home() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-12 leading-relaxed">
-            The ultimate dashboard for competitive programmers. Track performance across <span className="text-white font-bold underline decoration-indigo-500 decoration-2 underline-offset-4">Codeforces</span> and <span className="text-white font-bold underline decoration-purple-500 decoration-2 underline-offset-4">LeetCode</span>.
+            The ultimate dashboard for competitive programmers. Track performance across <span className="text-white font-bold underline decoration-indigo-500 decoration-2 underline-offset-4">Codeforces</span>, <span className="text-white font-bold underline decoration-yellow-600 decoration-2 underline-offset-4">CodeChef</span> and <span className="text-white font-bold underline decoration-purple-500 decoration-2 underline-offset-4">LeetCode</span>.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full sm:w-auto">
@@ -188,29 +189,40 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Daily Problem Section */}
+        <section className="py-20 px-4 w-full max-w-7xl mx-auto">
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">📝 Problem of the Day</h2>
+            <p className="text-gray-400">Challenge yourself with today's curated problem</p>
+          </div>
+          <div className="transform hover:scale-105 transition-transform duration-300">
+            <ProblemOfTheDay />
+          </div>
+        </section>
+
         {/* ... Rest of features and footer ... */}
         <section className="py-20 px-4 w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Level up your game</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
-                <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
-                <p className="text-gray-400">Detailed rating and rank tracking.</p>
-             </div>
-             <Link to="/class">
-             <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
+            <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
+              <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
+              <p className="text-gray-400">Detailed rating and rank tracking.</p>
+            </div>
+            <Link to="/class">
+              <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
                 <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
                 <p className="text-gray-400">Class and friend leaderboards.</p>
-             </div>
-             </Link>
-             <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
-                <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
-                <p className="text-gray-400">Optimized caching for speed.</p>
-             </div>
+              </div>
+            </Link>
+            <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
+              <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
+              <p className="text-gray-400">Optimized caching for speed.</p>
+            </div>
           </div>
         </section>
 
@@ -220,6 +232,6 @@ export default function Home() {
           </div>
         </footer>
       </div>
-    </div>
+    </div >
   );
 }

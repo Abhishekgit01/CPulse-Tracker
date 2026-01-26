@@ -1,9 +1,12 @@
 import mongoose from "mongoose";
 
-const MONGO_URI = "mongodb+srv://theabhishekrp_db_user:PhgmDkRx89hG976B@cpcluster.k7iqaez.mongodb.net/?appName=CPcluster/cpulse";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/cpulse";
 
 export async function connectDB() {
   try {
+    if (!process.env.MONGO_URI) {
+      console.warn("WARNING: MONGO_URI not found in .env, using local fallback.");
+    }
     await mongoose.connect(MONGO_URI);
     console.log("MongoDB connected");
   } catch (error) {

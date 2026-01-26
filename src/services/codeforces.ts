@@ -33,6 +33,15 @@ export async function getUserInfo(handle: string) {
     maxRating: user.maxRating,
     rank: user.rank,
     maxRank: user.maxRank,
+
+    // Rich Fields
+    avatar: user.titlePhoto,
+    title: user.rank,
+    contribution: user.contribution,
+    friendOfCount: user.friendOfCount,
+    organization: user.organization || "Independent",
+    lastOnlineTimeSeconds: user.lastOnlineTimeSeconds,
+
     history,
   };
 }

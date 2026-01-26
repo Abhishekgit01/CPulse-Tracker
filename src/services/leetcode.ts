@@ -9,6 +9,8 @@ export async function getLeetCodeUser(username: string) {
             username
             profile {
               ranking
+              userAvatar
+              reputation
             }
             submitStats {
               acSubmissionNum {
@@ -16,6 +18,11 @@ export async function getLeetCodeUser(username: string) {
                 count
               }
             }
+          }
+          userContestRanking(username: $username) {
+            rating
+            globalRanking
+            topPercentage
           }
         }
       `,
@@ -35,39 +42,43 @@ export async function getLeetCodeUser(username: string) {
     );
 
     const user = response.data?.data?.matchedUser;
+    const contest = response.data?.data?.userContestRanking;
 
     if (!user) {
       throw new Error("LeetCode user not found");
     }
 
-    const totalSolved = user.submitStats.acSubmissionNum.reduce(
-      (sum: number, item: any) => sum + item.count,
-      0
+    const breakdown = user.submitStats.acSubmissionNum.reduce(
+      (acc: any, item: any) => {
+        acc[item.difficulty.toLowerCase()] = item.count;
+        return acc;
+      },
+      {}
     );
 
-    const breakdown = user.submitStats.acSubmissionNum.reduce(
-  (acc: any, item: any) => {
-    acc[item.difficulty.toLowerCase()] = item.count;
-    return acc;
-  },
-  {}
-);
+    return {
+      handle: user.username,
+      platform: "leetcode" as const,
 
-return {
-  handle: user.username,
-  platform: "leetcode" as const,
+      totalSolved:
+        (breakdown.easy || 0) +
+        (breakdown.medium || 0) +
+        (breakdown.hard || 0),
 
-  totalSolved:
-    (breakdown.easy || 0) +
-    (breakdown.medium || 0) +
-    (breakdown.hard || 0),
+      easySolved: breakdown.easy || 0,
+      mediumSolved: breakdown.medium || 0,
+      hardSolved: breakdown.hard || 0,
 
-  easySolved: breakdown.easy || 0,
-  mediumSolved: breakdown.medium || 0,
-  hardSolved: breakdown.hard || 0,
+      // Rich Fields
+      avatar: user.profile.userAvatar,
+      contestRating: Math.round(contest?.rating || 0),
+      globalRanking: contest?.globalRanking || user.profile.ranking,
+      topPercentage: contest?.topPercentage || 0,
+      reputation: user.profile.reputation || 0,
+      title: contest?.rating ? (contest.rating > 2000 ? "Guardian" : contest.rating > 1600 ? "Knight" : "Member") : "Member",
 
-  history: [], // LeetCode has no historical API
-};
+      history: [], // LeetCode has no historical API
+    };
 
   } catch (err: any) {
     console.error("LEETCODE SERVICE ERROR:", err.message);
