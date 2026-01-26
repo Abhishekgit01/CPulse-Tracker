@@ -3,8 +3,9 @@ import axios from "axios";
 
 interface LeaderboardUser {
   handle: string;
-  platform: "codeforces" | "leetcode";
-  cpulseRating: number;
+  platform: "codeforces" | "leetcode" | "codechef";
+  cpulseRating?: number;
+  rating?: number;
 }
 
 export default function Leaderboard() {
@@ -15,7 +16,16 @@ export default function Leaderboard() {
     axios
       .get("http://localhost:5000/leaderboard")
       .then((res) => {
-        setUsers(res.data);
+        // Assign default CP score of 0 to accounts without one
+        const processedUsers = (res.data || []).map((user: LeaderboardUser) => ({
+          ...user,
+          cpulseRating: user.cpulseRating ?? user.rating ?? 0,
+        }));
+        // Sort by rating descending
+        processedUsers.sort((a: LeaderboardUser, b: LeaderboardUser) => 
+          (b.cpulseRating || 0) - (a.cpulseRating || 0)
+        );
+        setUsers(processedUsers);
         setLoading(false);
       })
       .catch((err) => {
@@ -81,21 +91,29 @@ export default function Leaderboard() {
             {/* Platform badge */}
             <div className="col-span-3">
               <span
-                className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                  u.platform === "codeforces"
+                className={`px-3 py-1 text-xs font-semibold rounded-full ${u.platform === "codeforces"
                     ? "bg-red-500/20 text-red-400"
-                    : "bg-yellow-500/20 text-yellow-400"
-                }`}
+                    : u.platform === "codechef"
+                      ? "bg-amber-700/20 text-amber-500"
+                      : "bg-yellow-500/20 text-yellow-400"
+                  }`}
               >
                 {u.platform === "codeforces"
                   ? "Codeforces"
-                  : "LeetCode"}
+                  : u.platform === "codechef"
+                    ? "CodeChef"
+                    : "LeetCode"}
               </span>
             </div>
 
             {/* CP Score */}
-            <div className="col-span-2 text-right font-extrabold text-indigo-400">
-              {u.cpulseRating}
+            <div className="col-span-2 text-right font-extrabold">
+              <span className={u.cpulseRating === 0 ? "text-gray-400" : "text-indigo-400"}>
+                {u.cpulseRating ?? 0}
+              </span>
+              {u.cpulseRating === 0 && (
+                <span className="text-xs text-gray-500 ml-2">New</span>
+              )}
             </div>
           </div>
         ))}

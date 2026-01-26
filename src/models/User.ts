@@ -15,7 +15,7 @@ export interface GrowthPoint {
  */
 export interface IUser extends Document {
   handle: string;
-  platform: "codeforces" | "leetcode";
+  platform: "codeforces" | "leetcode" | "codechef";
 
   /* ---------- Codeforces ---------- */
   rating?: number;
@@ -25,9 +25,32 @@ export interface IUser extends Document {
 
   /* ---------- LeetCode ---------- */
   totalSolved?: number;
+  easySolved?: number;
+  mediumSolved?: number;
+  hardSolved?: number;
+
+  /* ---------- CodeChef ---------- */
+  stars?: number;
+  globalRank?: number;
+  countryRank?: number;
+  problemsSolved?: number;
 
   /* ---------- CPulse ---------- */
   cpulseRating: number;
+
+  /* ---------- Rich Profile Info (Maximization) ---------- */
+  avatar?: string;
+  title?: string;
+  contribution?: number;
+  friendOfCount?: number;
+  organization?: string;
+  lastOnlineTimeSeconds?: number;
+  contestRating?: number;
+  globalRanking?: number;
+  topPercentage?: number;
+  reputation?: number;
+  division?: string;
+  country?: string;
 
   /* ---------- Growth ---------- */
   history: GrowthPoint[];
@@ -52,7 +75,7 @@ const UserSchema = new Schema<IUser>(
     platform: {
       type: String,
       required: true,
-      enum: ["codeforces", "leetcode"],
+      enum: ["codeforces", "leetcode", "codechef"],
     },
 
     /* ---------- Codeforces fields ---------- */
@@ -63,12 +86,35 @@ const UserSchema = new Schema<IUser>(
 
     /* ---------- LeetCode fields ---------- */
     totalSolved: { type: Number },
+    easySolved: { type: Number },
+    mediumSolved: { type: Number },
+    hardSolved: { type: Number },
+
+    /* ---------- CodeChef fields ---------- */
+    stars: { type: Number },
+    globalRank: { type: Number },
+    countryRank: { type: Number },
+    problemsSolved: { type: Number },
 
     /* ---------- CPulse Rating ---------- */
     cpulseRating: {
       type: Number,
       default: 0,
     },
+
+    /* ---------- Rich Profile Info ---------- */
+    avatar: { type: String },
+    title: { type: String },
+    contribution: { type: Number },
+    friendOfCount: { type: Number },
+    organization: { type: String },
+    lastOnlineTimeSeconds: { type: Number },
+    contestRating: { type: Number },
+    globalRanking: { type: Number },
+    topPercentage: { type: Number },
+    reputation: { type: Number },
+    division: { type: String },
+    country: { type: String },
 
     /* ---------- Growth History ---------- */
     history: [
