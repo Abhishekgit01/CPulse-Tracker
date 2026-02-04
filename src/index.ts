@@ -20,6 +20,8 @@ import recommendRoutes from "./routes/recommend";
 import radarRoutes from "./routes/radar";
 import analysisRoutes from "./routes/analysis";
 import detailedProfileRoutes from "./routes/detailedProfile";
+import companyRoutes from "./routes/companies";
+import contestRoutes from "./routes/contests";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +46,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/recommend", recommendRoutes);
 app.use("/api/radar", radarRoutes);
 app.use("/api/analysis", analysisRoutes);
+app.use("/api/companies", companyRoutes);
+app.use("/api/contests", contestRoutes);
 app.use("/api", detailedProfileRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */

@@ -26,7 +26,7 @@ router.post("/chat", async (req, res) => {
 
         // Call Gemini API (REST)
         // Call Gemini API (REST)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const response = await axios.post(url, {
             contents: [{
@@ -45,9 +45,21 @@ router.post("/chat", async (req, res) => {
         res.json({ reply });
 
     } catch (err: any) {
-        const details = err.response?.data?.error?.message || err.message;
-        console.error("AI CHAT ERROR:", details);
-        res.status(500).json({ error: "Failed to get AI response", details });
+        const status = err.response?.status;
+        const statusText = err.response?.statusText;
+        const data = err.response?.data;
+
+        console.error("AI CHAT ERROR:", {
+            status,
+            statusText,
+            data: JSON.stringify(data, null, 2),
+            message: err.message
+        });
+
+        res.status(500).json({
+            error: "Failed to get AI response",
+            details: data?.error?.message || err.message
+        });
     }
 });
 

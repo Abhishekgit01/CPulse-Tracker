@@ -18,10 +18,14 @@ import ComparisonView from "./components/ComparisonView";
 import OnboardingWizard from "./components/OnboardingWizard";
 import StatsDashboard from "./components/StatsDashboard";
 import ProblemOfTheDay from "./components/ProblemOfTheDay";
+import Companies from "./components/Companies";
+import CompanyDetails from "./components/CompanyDetails";
+import ContestCalendar from "./components/ContestCalendar";
+import ClassLeaderboard from "./components/ClassLeaderboard";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [enhancedUI, setEnhancedUI] = useState(false);
+  const [enhancedUI, setEnhancedUI] = useState(true);
   const { token, logout } = useAuth();
 
   /* ================= LOAD THEME ================= */
@@ -100,6 +104,22 @@ export default function App() {
           </Link>
 
           <Link
+            to="/contests"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            Contests
+          </Link>
+
+          <Link
+            to="/companies"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            Companies
+
+
+          </Link>
+
+          <Link
             to="/problem-of-day"
             className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
           >
@@ -164,10 +184,11 @@ export default function App() {
             </button>
           )}
         </div>
-      </nav>
+      </nav >
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className={`${enhancedUI ? "" : "max-w-6xl"} mx-auto p-6`}>
+      < main className={`${enhancedUI ? "" : "max-w-6xl"} mx-auto p-6`
+      }>
         <Routes>
           {/* Home */}
           <Route path="/" element={<Home />} />
@@ -197,6 +218,9 @@ export default function App() {
           {/* Enhanced Features */}
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
+          <Route path="/companies" element={<Companies />} />
+          <Route path="/companies/:slug" element={<CompanyDetails />} />
+          <Route path="/contests" element={<ContestCalendar />} />
 
           {enhancedUI && (
             <>
@@ -219,10 +243,10 @@ export default function App() {
             }
           />
         </Routes>
-      </main>
+      </main >
 
       {/* CP Tutor (Floating) */}
-      <AICoach />
-    </div>
+      < AICoach />
+    </div >
   );
 }
