@@ -69,7 +69,7 @@ router.get("/:platform/:handle", async (req, res) => {
             - Focus on strengths and potential career paths based on these skills (e.g. Finance for Math, Systems for DP).
             - Use markdown.`;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             const aiRes = await axios.post(url, {
                 contents: [{ parts: [{ text: prompt }] }]
             });
