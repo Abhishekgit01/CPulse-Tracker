@@ -37,8 +37,8 @@ export default function Compare() {
         try {
             // Fetch both users in parallel using the unified metrics endpoint
             const [res1, res2] = await Promise.all([
-                axios.get(`http://localhost:5000/api/metrics/${platform}/${handle1}`),
-                axios.get(`http://localhost:5000/api/metrics/${platform}/${handle2}`),
+                axios.get(`/api/metrics/${platform}/${handle1}`),
+                axios.get(`/api/metrics/${platform}/${handle2}`),
             ]);
 
             setData({

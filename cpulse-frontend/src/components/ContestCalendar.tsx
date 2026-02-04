@@ -27,7 +27,7 @@ export default function ContestCalendar() {
         try {
             setLoading(true);
             const response = await axios.get<{ success: boolean; contests: Contest[] }>(
-                "http://localhost:5000/api/contests"
+                "/api/contests"
             );
 
             if (response.data.success) {
@@ -46,7 +46,7 @@ export default function ContestCalendar() {
     const handleRefresh = async () => {
         try {
             setRefreshing(true);
-            await axios.post("http://localhost:5000/api/contests/refresh");
+            await axios.post("/api/contests/refresh");
             await fetchContests();
         } catch (err) {
             console.error("Error refreshing contests:", err);

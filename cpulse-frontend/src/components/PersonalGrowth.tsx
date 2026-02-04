@@ -130,7 +130,7 @@ export default function PersonalGrowth() {
     const fetchUserData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/metrics/${platform}/${username}`,
+          `/api/metrics/${platform}/${username}`,
           { timeout: 15000 }
         );
         return response.data;
@@ -154,7 +154,7 @@ export default function PersonalGrowth() {
         // Fetch Recommendations if platform is Codeforces
         if (platform === "codeforces") {
           setLoadingRecs(true);
-          axios.get(`http://localhost:5000/api/recommend/${username}/${res[0].rating}`)
+          axios.get(`/api/recommend/${username}/${res[0].rating}`)
             .then(recRes => {
               setRecommendations(recRes.data.recommendations || []);
             })
@@ -164,7 +164,7 @@ export default function PersonalGrowth() {
 
         // Fetch AI Analysis
         setLoadingAnalysis(true);
-        axios.get(`http://localhost:5000/api/analysis/${platform}/${username}`)
+        axios.get(`/api/analysis/${platform}/${username}`)
           .then(res => setAiAnalysis(res.data))
           .catch(err => console.error("Analysis Error:", err))
           .finally(() => setLoadingAnalysis(false));

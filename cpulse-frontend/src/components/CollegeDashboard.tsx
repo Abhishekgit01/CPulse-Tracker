@@ -45,7 +45,7 @@ export default function CollegeDashboard() {
 
     const fetchClasses = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/api/class/list");
+            const res = await axios.get("/api/class/list");
             setClasses(res.data.classes);
             if (res.data.classes.length > 0) {
                 handleSelectClass(res.data.classes[0]);
@@ -64,7 +64,7 @@ export default function CollegeDashboard() {
 
             // Fetch AI Insights
             setLoadingInsights(true);
-            const insightRes = await axios.get(`http://localhost:5000/api/class/${classId}/ai-insights`);
+            const insightRes = await axios.get(`/api/class/${classId}/ai-insights`);
             setInsights(insightRes.data.insights);
         } catch (err) {
             console.error("Failed to fetch stats", err);

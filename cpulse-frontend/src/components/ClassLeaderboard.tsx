@@ -18,7 +18,7 @@ export default function ClassLeaderboard() {
 
   // Fetch all classes on load
   useEffect(() => {
-    axios.get("http://localhost:5000/classes").then((res) => {
+    axios.get("/classes").then((res) => {
       setClasses(res.data);
     });
   }, []);
