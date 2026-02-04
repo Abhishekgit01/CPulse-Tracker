@@ -147,7 +147,13 @@ export default function ProblemOfTheDay() {
     );
   }
 
-  if (error) {
+  if (error || !problem) {
+    return (
+      <div className="text-center py-20 text-red-500">
+        {error || "Problem not available"}
+      </div>
+    );
+  }
     return (
       <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-6 rounded-lg text-center">
         {error}
@@ -190,18 +196,18 @@ export default function ProblemOfTheDay() {
           <div className="flex flex-wrap gap-4 mb-8">
             <div>
               <span
-                className={`inline-block px-4 py-2 rounded-full font-semibold text-sm ${DIFFICULTY_COLORS[problem.difficulty]}`}
+                className={`inline-block px-4 py-2 rounded-full font-semibold text-sm ${DIFFICULTY_COLORS[problem.difficulty] || 'bg-gray-200'}`}
               >
-                {problem.difficulty}
+                {problem.difficulty || 'Unknown'}
               </span>
             </div>
 
             {/* Platform Badge */}
             <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${PLATFORM_COLORS[problem.platform]} text-white font-semibold text-sm`}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${PLATFORM_COLORS[problem.platform || 'unknown']} text-white font-semibold text-sm`}
             >
-              {problem.platform.charAt(0).toUpperCase() +
-                problem.platform.slice(1)}
+              {(problem.platform || 'Unknown').charAt(0).toUpperCase() +
+                (problem.platform || 'Unknown').slice(1)}
             </div>
 
             {/* Rating/Acceptance */}
