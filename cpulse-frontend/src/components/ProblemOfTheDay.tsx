@@ -154,20 +154,6 @@ export default function ProblemOfTheDay() {
       </div>
     );
   }
-    return (
-      <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-6 rounded-lg text-center">
-        {error}
-      </div>
-    );
-  }
-
-  if (!problem) {
-    return (
-      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg text-center">
-        No problem available
-      </div>
-    );
-  }
 
   const acceptancePercentage =
     problem.acceptanceRate?.toFixed(1) || "N/A";
