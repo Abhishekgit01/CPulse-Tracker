@@ -18,7 +18,7 @@ router.get("/:handle/:rating", async (req, res) => {
         // Optional: Use Gemini to pick the best 3 and explain why + add a hint
         const apiKey = process.env.GEMINI_API_KEY;
         if (apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const prompt = `You are a CP Coach. I have a list of unsolved Codeforces problems for a user with rating ${userRating}.
       Pick 3 problems that offer a good variety of topics (e.g., one DP, one Greedy, one Math/Graphs).
