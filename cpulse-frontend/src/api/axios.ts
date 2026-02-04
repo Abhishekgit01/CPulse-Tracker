@@ -1,14 +1,12 @@
 import axios from "axios";
 
-const getBaseURL = () => {
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return 'https://cpulse-backend.vercel.app';
-  }
-  return process.env.REACT_APP_API_URL || "http://localhost:5000";
-};
+// Use Vercel backend for production, localhost for development
+const baseURL = process.env.NODE_ENV === 'production' 
+  ? 'https://cpulse-backend.vercel.app'
+  : 'http://localhost:5000';
 
 const api = axios.create({
-  baseURL: getBaseURL(),
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
