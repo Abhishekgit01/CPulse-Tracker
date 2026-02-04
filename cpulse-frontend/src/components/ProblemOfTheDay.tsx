@@ -127,7 +127,7 @@ export default function ProblemOfTheDay() {
     const fetchProblemOfDay = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/daily-problem");
+        const res = await axios.get("/api/daily-problem");
         setProblem(res.data);
         setLoading(false);
       } catch (err) {

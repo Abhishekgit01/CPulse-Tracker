@@ -40,7 +40,7 @@ export default function AICoach() {
                 rating: 1500, // TODO: Fetch real stats
             };
 
-            const res = await axios.post("http://localhost:5000/api/ai/chat", {
+            const res = await axios.post("/api/ai/chat", {
                 message: userMsg,
                 context
             });

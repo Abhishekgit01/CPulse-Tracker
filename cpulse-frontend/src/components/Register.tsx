@@ -12,7 +12,7 @@ export default function Register() {
   const submit = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/auth/register",
+        "/auth/register",
         { email, password }
       );
       navigate("/login");

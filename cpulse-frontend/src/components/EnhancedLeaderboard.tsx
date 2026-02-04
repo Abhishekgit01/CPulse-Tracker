@@ -23,7 +23,7 @@ export default function EnhancedLeaderboard() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/leaderboard")
+      .get("/leaderboard")
       .then((res) => {
         // Assign default CP score of 0 to accounts without one
         const processedUsers = (res.data || []).map((user: LeaderboardUser) => ({

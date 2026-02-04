@@ -29,7 +29,7 @@ export default function MasteryRadar({ handle, platform }: { handle: string; pla
     useEffect(() => {
         const fetchRadarData = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/radar/${platform}/${handle}`);
+                const res = await axios.get(`/api/radar/${platform}/${handle}`);
                 setData(res.data.radarData);
                 setSummary(res.data.summary);
             } catch (err) {

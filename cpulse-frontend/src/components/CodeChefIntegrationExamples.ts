@@ -7,7 +7,7 @@ import axios from "axios";
 // ===================== EXAMPLE 1: Fetch CodeChef Stats =====================
 async function fetchCodeChefUser(username: string) {
   try {
-    const response = await axios.get(`http://localhost:5000/user/codechef/${username}`);
+    const response = await axios.get(`/user/codechef/${username}`);
     console.log("CodeChef Stats:", response.data);
     return response.data;
   } catch (error: any) {
@@ -91,11 +91,11 @@ async function compareUserAcrossAllPlatforms(handle: string) {
       try {
         if (platform === "codechef") {
           results[platform] = await axios.get(
-            `http://localhost:5000/user/codechef/${handle}`
+            `/user/codechef/${handle}`
           );
         } else {
           results[platform] = await axios.get(
-            `http://localhost:5000/user/${platform}/${handle}/history`
+            `/user/${platform}/${handle}/history`
           );
         }
       } catch (err) {
