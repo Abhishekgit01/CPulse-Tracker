@@ -14,6 +14,7 @@ import { getLeetCodeUser } from "./services/leetcode";
 import { getCodeChefUser } from "./services/codechef";
 import { requireAuth } from "./middleware/auth";
 import userRoutes from "./routes/user";
+import authRoutes from "./routes/auth";
 import classRoutes from "./routes/class";
 import aiRoutes from "./routes/ai";
 import recommendRoutes from "./routes/recommend";
@@ -38,7 +39,8 @@ app.get("/", (_req, res) => {
 });
 
 /* ===================== ROUTES ===================== */
-app.use("/user", userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/class", classRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/recommend", recommendRoutes);
