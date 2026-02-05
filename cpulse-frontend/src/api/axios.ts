@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'https://cpulse-backend.vercel.app',
+  baseURL: process.env.REACT_APP_API_URL || 'https://cpulse-backend.vercel.app',
 });
 
 api.interceptors.request.use((config) => {
