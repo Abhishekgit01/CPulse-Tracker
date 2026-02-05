@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
+import api from "../api/axios";
 import {
   Code,
   ExternalLink,
@@ -129,7 +129,7 @@ export default function PersonalGrowth() {
     // Unified Fetch for all platform metrics
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `/api/metrics/${platform}/${username}`,
           { timeout: 15000 }
         );
@@ -143,7 +143,7 @@ export default function PersonalGrowth() {
       }
     };
 
-    axios
+    Promise
       .all([
         fetchUserData(),
       ])
@@ -154,7 +154,7 @@ export default function PersonalGrowth() {
         // Fetch Recommendations if platform is Codeforces
         if (platform === "codeforces") {
           setLoadingRecs(true);
-          axios.get(`/api/recommend/${username}/${res[0].rating}`)
+          api.get(`/api/recommend/${username}/${res[0].rating}`)
             .then(recRes => {
               setRecommendations(recRes.data.recommendations || []);
             })
@@ -164,7 +164,7 @@ export default function PersonalGrowth() {
 
         // Fetch AI Analysis
         setLoadingAnalysis(true);
-        axios.get(`/api/analysis/${platform}/${username}`)
+        api.get(`/api/analysis/${platform}/${username}`)
           .then(res => setAiAnalysis(res.data))
           .catch(err => console.error("Analysis Error:", err))
           .finally(() => setLoadingAnalysis(false));
@@ -218,7 +218,7 @@ export default function PersonalGrowth() {
     <div className="max-w-5xl mx-auto p-6 space-y-6">
 
       {/* ===================== EASTER EGG: GOD_ABHI ===================== */}
-      {data.handle.toLowerCase() === "god_abhi" && data.platform === "leetcode" && (
+      {data.handle?.toLowerCase() === "god_abhi" && data.platform === "leetcode" && (
         <div className="relative mb-10 text-center animate-bounce">
           <div className="inline-block relative">
             <Trophy size={64} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(255,215,0,0.8)] mx-auto mb-2" />
@@ -245,7 +245,7 @@ export default function PersonalGrowth() {
           <div className="flex flex-1 items-start gap-8 w-full">
             {/* Avatar Section */}
             <div className="relative group">
-              <div className={`p-1 rounded-3xl ${data.handle.toLowerCase() === "god_abhi" && data.platform === "leetcode" ? "bg-gradient-to-tr from-yellow-400 via-yellow-100 to-yellow-500 animate-golden-glow" : "bg-indigo-500/20"} shadow-2xl`}>
+              <div className={`p-1 rounded-3xl ${data.handle?.toLowerCase() === "god_abhi" && data.platform === "leetcode" ? "bg-gradient-to-tr from-yellow-400 via-yellow-100 to-yellow-500 animate-golden-glow" : "bg-indigo-500/20"} shadow-2xl`}>
                 {data.avatar ? (
                   <img
                     src={data.avatar}
@@ -269,7 +269,7 @@ export default function PersonalGrowth() {
             {/* Handle & AI Info Section */}
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className={`text-5xl font-black tracking-tighter ${data.handle.toLowerCase() === "god_abhi" && data.platform === "leetcode" ? "text-golden-gradient" : "text-gray-900 dark:text-white"}`}>
+                <h2 className={`text-5xl font-black tracking-tighter ${data.handle?.toLowerCase() === "god_abhi" && data.platform === "leetcode" ? "text-golden-gradient" : "text-gray-900 dark:text-white"}`}>
                   {data.handle}
                 </h2>
                 {/* AI Vibe Badge */}
@@ -325,7 +325,7 @@ export default function PersonalGrowth() {
             <div className="flex flex-col items-end">
               <div className={`
                 text-4xl font-black px-8 py-4 rounded-3xl shadow-xl transition-all duration-300 hover:scale-105 hover:rotate-2
-                ${data.handle.toLowerCase() === "god_abhi" && data.platform === "leetcode"
+                ${data.handle?.toLowerCase() === "god_abhi" && data.platform === "leetcode"
                   ? "bg-yellow-400 text-black shadow-yellow-400/50"
                   : "bg-indigo-600 text-white shadow-indigo-500/30"}
               `}>
@@ -358,7 +358,7 @@ export default function PersonalGrowth() {
             <button
               onClick={() => {
                 if (!classId) return;
-                axios.post(`/api/users/class`, {
+                api.post(`/api/users/class`, {
                   handle: data.handle,
                   platform: data.platform,
                   classId
