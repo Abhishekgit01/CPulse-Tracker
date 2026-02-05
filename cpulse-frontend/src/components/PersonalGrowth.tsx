@@ -272,12 +272,12 @@ export default function PersonalGrowth() {
                 <h2 className={`text-5xl font-black tracking-tighter ${data.handle?.toLowerCase() === "god_abhi" && data.platform === "leetcode" ? "text-golden-gradient" : "text-gray-900 dark:text-white"}`}>
                   {data.handle}
                 </h2>
-                {/* AI Vibe Badge */}
+                {/* AI Performance Persona */}
                 {aiAnalysis && (
                   <div className="flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 rounded-full border border-indigo-200 dark:border-indigo-800 shadow-sm transition-all hover:scale-105">
                     <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                      {aiAnalysis.vibe}
+                      {aiAnalysis.persona}
                     </span>
                   </div>
                 )}
@@ -314,7 +314,7 @@ export default function PersonalGrowth() {
                       {aiAnalysis.bio}
                     </p>
                     <p className="text-[10px] font-bold text-indigo-400 mt-2 uppercase tracking-widest flex items-center gap-2">
-                      <Sparkles size={10} /> "{aiAnalysis.vibeQuote}"
+                      <Sparkles size={10} /> "{aiAnalysis.statusQuote}"
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface User {
@@ -36,7 +36,7 @@ export default function StatsDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/leaderboard");
+        const res = await api.get("/api/leaderboard");
         const users: User[] = res.data;
 
         if (users.length === 0) {
@@ -292,13 +292,12 @@ export default function StatsDashboard() {
         {stats.platformStats.map((stat) => (
           <div
             key={stat.platform}
-            className={`rounded-xl p-6 border-l-4 ${
-              stat.platform === "codeforces"
+            className={`rounded-xl p-6 border-l-4 ${stat.platform === "codeforces"
                 ? "bg-red-50 dark:bg-red-900/10 border-red-500"
                 : stat.platform === "codechef"
                   ? "bg-amber-50 dark:bg-amber-900/10 border-amber-600"
                   : "bg-yellow-50 dark:bg-yellow-900/10 border-yellow-500"
-            }`}
+              }`}
           >
             <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-3 capitalize text-lg">
               {stat.platform === "codeforces"

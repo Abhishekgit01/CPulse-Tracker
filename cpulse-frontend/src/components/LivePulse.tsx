@@ -4,8 +4,8 @@ import { Sparkles, Zap, Target, TrendingUp } from "lucide-react";
 interface LivePulseProps {
     analysis: {
         bio?: string;
-        vibe?: string;
-        vibeQuote?: string;
+        persona?: string;
+        statusQuote?: string;
         strength?: string;
         weakness?: string;
         roadmapTip?: string;
@@ -16,7 +16,7 @@ const LivePulse: React.FC<LivePulseProps> = ({ analysis }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const messages = analysis ? [
-        { icon: <Sparkles className="text-yellow-400" />, text: analysis.vibeQuote },
+        { icon: <Sparkles className="text-yellow-400" />, text: analysis.statusQuote },
         { icon: <TrendingUp className="text-emerald-400" />, text: `Strength: ${analysis.strength}` },
         { icon: <Target className="text-indigo-400" />, text: analysis.roadmapTip },
         { icon: <Zap className="text-orange-400" />, text: "Pulse Score rising! Keep the momentum." }

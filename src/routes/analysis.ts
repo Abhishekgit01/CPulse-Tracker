@@ -37,8 +37,8 @@ router.get("/:platform/:handle", async (req, res) => {
             Output exactly in this JSON format (no other text):
             {
                 "bio": "A professional 3-line summary for their portfolio.",
-                "vibe": "Select one: 'Grind Mode', 'Zen Master', 'Code Ninja', 'Logic Architect', 'Speedster'.",
-                "vibeQuote": "A 1-line motivational quote in that vibe.",
+                "persona": "Select one: 'Grind Mode', 'Zen Master', 'Code Ninja', 'Logic Architect', 'Speedster'.",
+                "statusQuote": "A 1-line motivational quote in that persona.",
                 "strength": "The most impressive technical attribute they have.",
                 "weakness": "A constructive area for improvement.",
                 "roadmapTip": "A specific high-level advice to reach the next big milestone.",
@@ -63,8 +63,8 @@ router.get("/:platform/:handle", async (req, res) => {
             console.error("AI JSON Parse Error:", e);
             result = {
                 bio: `${user.handle} is an active ${user.platform} programmer with a CPulse score of ${user.cpulseRating}.`,
-                vibe: "Code Ninja",
-                vibeQuote: "Keep coding, keep growing.",
+                persona: "Code Ninja",
+                statusQuote: "Keep coding, keep growing.",
                 strength: "Consistency in solving.",
                 weakness: "Could tackle more diverse problems.",
                 roadmapTip: "Continue practicing medium-level problems.",
@@ -75,8 +75,13 @@ router.get("/:platform/:handle", async (req, res) => {
         res.json(result);
 
     } catch (error: any) {
-        console.error("ANALYSIS ERROR:", error.message);
-        res.status(500).json({ error: "Failed to generate AI analysis" });
+        console.error("[Service Error] Profile Analysis Failure:", {
+            handle: req.params.handle,
+            platform: req.params.platform,
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+        res.status(500).json({ error: "The system was unable to generate a performance analysis at this time." });
     }
 });
 

@@ -79,7 +79,7 @@ router.get("/:classId/ai-insights", async (req, res) => {
         
         Keep it brief and use markdown. Use professional formatting.`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const response = await axios.post(url, {
             contents: [{ parts: [{ text: prompt }] }]
@@ -88,8 +88,11 @@ router.get("/:classId/ai-insights", async (req, res) => {
         const insights = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "No insights available right now.";
         res.json({ insights });
     } catch (error: any) {
-        console.error("AI CLASS ERROR:", error.message);
-        res.status(500).json({ error: "Failed to generate AI insights" });
+        console.error("[Service Error] AI Insights Generation Failure:", {
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+        res.status(500).json({ error: "The system was unable to generate AI insights at this time." });
     }
 });
 

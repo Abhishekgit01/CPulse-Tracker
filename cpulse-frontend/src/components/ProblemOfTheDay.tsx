@@ -39,7 +39,7 @@ export default function ProblemOfTheDay() {
   const [error, setError] = useState("");
   const [dayIndex, setDayIndex] = useState(0);
 
-  // Sample problems database (in real app, would come from backend)
+  // Problem metadata database
   const sampleProblems: Problem[] = [
     {
       id: "1",
@@ -159,7 +159,11 @@ export default function ProblemOfTheDay() {
     problem.acceptanceRate?.toFixed(1) || "N/A";
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto flex flex-col items-center">
+      {/* Platform Logo Decoration */}
+      <div className="mb-6">
+        <img src="/logo.png" alt="CPulse Logo" className="w-20 h-20 object-contain shadow-2xl rounded-2xl" />
+      </div>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

@@ -18,10 +18,13 @@ import ComparisonView from "./components/ComparisonView";
 import OnboardingWizard from "./components/OnboardingWizard";
 import StatsDashboard from "./components/StatsDashboard";
 import ProblemOfTheDay from "./components/ProblemOfTheDay";
+import Companies from "./components/Companies";
+import CompanyDetails from "./components/CompanyDetails";
+import ContestCalendar from "./components/ContestCalendar";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [enhancedUI, setEnhancedUI] = useState(false);
+  const [enhancedUI, setEnhancedUI] = useState(true);
   const { token, logout } = useAuth();
 
   /* ================= LOAD THEME ================= */
@@ -106,6 +109,20 @@ export default function App() {
             📝 Daily
           </Link>
 
+          <Link
+            to="/companies"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            🏢 Companies
+          </Link>
+
+          <Link
+            to="/contests"
+            className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            📅 Contests
+          </Link>
+
           {enhancedUI && (
             <Link
               to="/dashboard"
@@ -118,17 +135,6 @@ export default function App() {
 
         {/* RIGHT */}
         <div className="flex items-center gap-4">
-          {/* UI Version Toggle */}
-          <button
-            onClick={toggleEnhancedUI}
-            title={enhancedUI ? "Switch to Classic UI" : "Try Enhanced UI"}
-            className={`px-3 py-2 rounded-lg transition ${enhancedUI
-              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-              : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-              }`}
-          >
-            {enhancedUI ? "✨ Enhanced" : "Classic"}
-          </button>
 
           {/* Dark mode toggle */}
           <button
@@ -197,6 +203,9 @@ export default function App() {
           {/* Enhanced Features */}
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
+          <Route path="/companies" element={<Companies />} />
+          <Route path="/companies/:slug" element={<CompanyDetails />} />
+          <Route path="/contests" element={<ContestCalendar />} />
 
           {enhancedUI && (
             <>
