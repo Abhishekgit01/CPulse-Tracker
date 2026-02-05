@@ -30,35 +30,39 @@ router.post("/chat", async (req, res) => {
 
         const response = await axios.post(url, {
             contents: [{
+                role: "user",
                 parts: [{
                     text: `${systemPrompt}\n\nUser: ${message}`
                 }]
-            }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.95,
+                topK: 40,
+                maxOutputTokens: 2048,
+            }
         });
 
         const reply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!reply) {
-            throw new Error("Empty response from Gemini");
+            throw new Error("Invalid response received from the generation service.");
         }
 
         res.json({ reply });
 
     } catch (err: any) {
-        const status = err.response?.status;
-        const statusText = err.response?.statusText;
-        const data = err.response?.data;
+        const errorDetails = err.response?.data?.error || err.message;
 
-        console.error("AI CHAT ERROR:", {
-            status,
-            statusText,
-            data: JSON.stringify(data, null, 2),
-            message: err.message
+        console.error("[Service Error] AI Chat Integration Failure:", {
+            statusCode: err.response?.status,
+            message: errorDetails,
+            timestamp: new Date().toISOString()
         });
 
         res.status(500).json({
-            error: "Failed to get AI response",
-            details: data?.error?.message || err.message
+            error: "An error occurred while processing your request with the AI service.",
+            details: process.env.NODE_ENV === "development" ? errorDetails : undefined
         });
     }
 });
