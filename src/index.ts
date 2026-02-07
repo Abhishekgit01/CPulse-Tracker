@@ -21,6 +21,8 @@ import recommendRoutes from "./routes/recommend";
 import radarRoutes from "./routes/radar";
 import analysisRoutes from "./routes/analysis";
 import detailedProfileRoutes from "./routes/detailedProfile";
+import contestRoutes from "./routes/contests";
+import companyRoutes from "./routes/companies";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -47,6 +49,8 @@ app.use("/api/recommend", recommendRoutes);
 app.use("/api/radar", radarRoutes);
 app.use("/api/analysis", analysisRoutes);
 app.use("/api", detailedProfileRoutes);
+app.use("/api/contests", contestRoutes);
+app.use("/api/companies", companyRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers
@@ -268,9 +272,12 @@ app.post("/class/add", async (req, res) => {
 /* ===================== START ===================== */
 connectDB();
 
-app.listen(PORT, () => {
-  console.log(`CPulse backend running on port ${PORT}`);
-  console.log(`Gemini API Key Loaded: ${process.env.GEMINI_API_KEY ? "Yes (starts with " + process.env.GEMINI_API_KEY.substring(0, 5) + ")" : "No"}`);
-});
+// Only listen when running directly (not when imported as serverless function)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`CPulse backend running on port ${PORT}`);
+    console.log(`Gemini API Key Loaded: ${process.env.GEMINI_API_KEY ? "Yes (starts with " + process.env.GEMINI_API_KEY.substring(0, 5) + ")" : "No"}`);
+  });
+}
 
 export default app;

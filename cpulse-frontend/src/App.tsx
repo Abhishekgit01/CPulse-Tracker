@@ -1,9 +1,7 @@
 import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import CollegeDashboard from "./components/CollegeDashboard";
-import Leaderboard from "./components/Leaderboard";
 import PersonalGrowth from "./components/PersonalGrowth";
-import CodeChefStats from "./components/CodeChefStats";
 import UserSearch from "./components/UserSearch";
 import Home from "./components/Home";
 import Login from "./components/Login";
@@ -13,14 +11,12 @@ import Compare from "./components/Compare";
 import Onboarding from "./components/Onboarding";
 import UserDashboard from "./components/UserDashboard";
 import { useAuth } from "./context/AuthContext";
-// Enhanced UI Components
 import EnhancedLeaderboard from "./components/EnhancedLeaderboard";
 import EnhancedCodeChefStats from "./components/EnhancedCodeChefStats";
-import ComparisonView from "./components/ComparisonView";
-import OnboardingWizard from "./components/OnboardingWizard";
-import StatsDashboard from "./components/StatsDashboard";
 import ProblemOfTheDay from "./components/ProblemOfTheDay";
-// Sparkles
+import ContestCalendar from "./components/ContestCalendar";
+import Companies from "./components/Companies";
+import CompanyDetails from "./components/CompanyDetails";
 import { SparklesCore } from "./components/ui/sparkles";
 
 const NAV_LINKS = [
@@ -30,11 +26,12 @@ const NAV_LINKS = [
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/compare", label: "Compare" },
   { to: "/problem-of-day", label: "Daily" },
+  { to: "/contests", label: "Contests" },
+  { to: "/companies", label: "Companies" },
 ];
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [enhancedUI, setEnhancedUI] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { token, user, loading, logout } = useAuth();
   const location = useLocation();
@@ -47,13 +44,9 @@ export default function App() {
   /* ================= LOAD THEME ================= */
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const savedUI = localStorage.getItem("enhancedUI");
     if (savedTheme === "dark") {
       setDarkMode(true);
       document.documentElement.classList.add("dark");
-    }
-    if (savedUI === "true") {
-      setEnhancedUI(true);
     }
   }, []);
 
@@ -69,13 +62,6 @@ export default function App() {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-  };
-
-  /* ================= TOGGLE ENHANCED UI ================= */
-  const toggleEnhancedUI = () => {
-    const next = !enhancedUI;
-    setEnhancedUI(next);
-    localStorage.setItem("enhancedUI", String(next));
   };
 
   /* ================= LOADING SPLASH ================= */
@@ -169,14 +155,6 @@ export default function App() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              {/* Enhanced/Classic toggle */}
-              <button
-                onClick={toggleEnhancedUI}
-                className="hidden sm:inline-flex text-xs text-gray-400 hover:text-gray-200 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-all"
-              >
-                {enhancedUI ? "Enhanced" : "Classic"}
-              </button>
-
               {/* Theme toggle */}
               <button
                 onClick={toggleDarkMode}
@@ -254,9 +232,6 @@ export default function App() {
                 </Link>
               )}
               <div className="flex items-center gap-1.5 px-3 py-2 mt-1 border-t border-white/[0.06]">
-                <button onClick={toggleEnhancedUI} className="text-xs text-gray-400 hover:text-gray-200 px-2.5 py-1.5 rounded bg-white/[0.04] border border-white/[0.06]">
-                  {enhancedUI ? "Enhanced" : "Classic"}
-                </button>
                 <button onClick={toggleDarkMode} className="text-sm px-2.5 py-1.5 rounded bg-white/[0.04] border border-white/[0.06]">
                   {darkMode ? "\u2600\uFE0F" : "\uD83C\uDF19"}
                 </button>
@@ -275,44 +250,23 @@ export default function App() {
       </nav>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className={`${enhancedUI ? "" : "max-w-6xl"} mx-auto px-4 sm:px-6 py-6 relative z-10`}>
+      <main className="mx-auto px-4 sm:px-6 py-6 relative z-10">
         <Routes>
-          {/* Home */}
           <Route path="/" element={<Home />} />
-
-          {/* Search */}
           <Route path="/search" element={<UserSearch />} />
-
-          {/* Leaderboards - Classic vs Enhanced */}
-          <Route
-            path="/leaderboard"
-            element={enhancedUI ? <EnhancedLeaderboard /> : <Leaderboard />}
-          />
+          <Route path="/leaderboard" element={<EnhancedLeaderboard />} />
           <Route path="/college" element={<CollegeDashboard />} />
-
-          {/* Personal Growth */}
-          <Route
-            path="/growth/:platform/:username"
-            element={<PersonalGrowth />}
-          />
-
-          {/* CodeChef Stats - Classic vs Enhanced */}
-          <Route
-            path="/codechef/:username"
-            element={enhancedUI ? <EnhancedCodeChefStats /> : <CodeChefStats />}
-          />
-
-          {/* Enhanced Features */}
+          <Route path="/growth/:platform/:username" element={<PersonalGrowth />} />
+          <Route path="/codechef/:username" element={<EnhancedCodeChefStats />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
-
-          {/* Auth */}
+          <Route path="/contests" element={<ContestCalendar />} />
+          <Route path="/companies" element={<Companies />} />
+          <Route path="/companies/:slug" element={<CompanyDetails />} />
           <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
           <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
           <Route path="/onboarding" element={token ? <Onboarding /> : <Navigate to="/login" />} />
           <Route path="/dashboard" element={token ? <UserDashboard /> : <Navigate to="/login" />} />
-
-          {/* Fallback */}
           <Route
             path="*"
             element={

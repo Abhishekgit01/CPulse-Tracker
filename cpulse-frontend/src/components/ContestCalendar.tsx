@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import ContestCard from "./ContestCard";
 import { Calendar, Filter, RefreshCw, TrendingUp } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function ContestCalendar() {
     const fetchContests = async () => {
         try {
             setLoading(true);
-            const response = await axios.get<{ success: boolean; contests: Contest[] }>(
+            const response = await api.get<{ success: boolean; contests: Contest[] }>(
                 "/api/contests"
             );
 
@@ -46,7 +46,7 @@ export default function ContestCalendar() {
     const handleRefresh = async () => {
         try {
             setRefreshing(true);
-            await axios.post("/api/contests/refresh");
+            await api.post("/api/contests/refresh");
             await fetchContests();
         } catch (err) {
             console.error("Error refreshing contests:", err);

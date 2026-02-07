@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axios";
 import {
     Users,
     Trophy,
@@ -59,7 +59,7 @@ export default function CollegeDashboard() {
         setSelectedClass(classId);
         setLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/class/${classId}/stats`);
+            const res = await axios.get(`/api/class/${classId}/stats`);
             setStats(res.data);
 
             // Fetch AI Insights

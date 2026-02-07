@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ProblemOfTheDay from "./ProblemOfTheDay";
+import RotatingText from "./ui/RotatingText";
 
 // --- Types ---
 interface Star {
@@ -31,7 +32,16 @@ const Icons = {
   ),
   ArrowRight: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-  )
+  ),
+  Globe: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+  ),
+  Brain: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>
+  ),
+  Target: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+  ),
 };
 
 const WarpBackground: React.FC = () => {
@@ -39,10 +49,10 @@ const WarpBackground: React.FC = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return; // Fixes 'canvas is possibly null'
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return; // Fixes 'ctx is possibly null'
+    if (!ctx) return;
 
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -51,7 +61,7 @@ const WarpBackground: React.FC = () => {
 
     const starCount = 200;
     const speed = 0.5;
-    const stars: Star[] = []; // Explicitly typed array
+    const stars: Star[] = [];
 
     for (let i = 0; i < starCount; i++) {
       stars.push({
@@ -62,7 +72,7 @@ const WarpBackground: React.FC = () => {
       });
     }
 
-    let animationFrameId: number; // Typed as number
+    let animationFrameId: number;
 
     const render = () => {
       ctx.fillStyle = "rgba(11, 17, 32, 0.4)";
@@ -117,10 +127,15 @@ const WarpBackground: React.FC = () => {
   );
 };
 
+const STATS = [
+  { label: "Platforms", value: "3+", color: "text-indigo-400" },
+  { label: "Metrics Tracked", value: "50+", color: "text-purple-400" },
+  { label: "Real-time Updates", value: "24/7", color: "text-cyan-400" },
+];
+
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Typed 'e' as React.MouseEvent
   const handleMouseMove = (e: React.MouseEvent) => {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
@@ -146,7 +161,8 @@ export default function Home() {
           transition: "transform 0.1s ease-out"
         }}
       >
-          <section className="flex flex-col items-center justify-center pt-20 sm:pt-32 pb-12 sm:pb-20 px-4 text-center w-full max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <section className="flex flex-col items-center justify-center pt-20 sm:pt-32 pb-12 sm:pb-20 px-4 text-center w-full max-w-7xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-indigo-300 text-sm font-medium mb-8 shadow-[0_0_15px_rgba(99,102,241,0.3)] animate-pulse">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -155,11 +171,30 @@ export default function Home() {
             Live Leaderboards Active
           </div>
 
-            <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-500 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
-              CPulse Tracker
-            </span>
-          </h1>
+            <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8 text-center">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-500 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+                CPulse
+              </span>
+              <span className="inline-flex h-[1.2em] overflow-hidden align-bottom">
+                <RotatingText
+                  texts={[
+                    "Tracker",
+                    "Dashboard",
+                    "Analyzer",
+                    "Engine",
+                    "Radar",
+                    "Hub",
+                  ]}
+                  mainClassName="overflow-hidden"
+                  elementLevelClassName="text-indigo-400"
+                  staggerFrom="first"
+                  staggerDuration={0.03}
+                  rotationInterval={3000}
+                  splitBy="characters"
+                  transition={{ type: "spring", damping: 28, stiffness: 250 }}
+                />
+              </span>
+            </h1>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-12 leading-relaxed">
             The ultimate dashboard for competitive programmers. Track performance across <span className="text-white font-bold underline decoration-indigo-500 decoration-2 underline-offset-4">Codeforces</span>, <span className="text-white font-bold underline decoration-yellow-600 decoration-2 underline-offset-4">CodeChef</span> and <span className="text-white font-bold underline decoration-purple-500 decoration-2 underline-offset-4">LeetCode</span>.
@@ -187,51 +222,81 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          {/* Quick stats bar */}
+          <div className="flex items-center justify-center gap-8 sm:gap-12 mt-14 pt-8 border-t border-white/[0.06] w-full max-w-xl">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className={`text-2xl sm:text-3xl font-extrabold ${stat.color}`}>{stat.value}</div>
+                <div className="text-xs sm:text-sm text-gray-500 mt-1">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </section>
 
-          {/* Daily Problem Section */}
-          <section className="py-12 sm:py-20 px-4 w-full max-w-7xl mx-auto">
-            <div className="mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Problem of the Day</h2>
-              <p className="text-gray-400 text-sm sm:text-base">Challenge yourself with today's curated problem</p>
-            </div>
-            <div className="glass-card rounded-3xl p-4 sm:p-6 hover:bg-white/[0.06] transition-all duration-300">
-              <ProblemOfTheDay />
-            </div>
-          </section>
+        {/* Daily Problem Section */}
+        <section className="py-12 sm:py-20 px-4 w-full max-w-7xl mx-auto">
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Problem of the Day</h2>
+            <p className="text-gray-400 text-sm sm:text-base">Challenge yourself with today's curated problem</p>
+          </div>
+          <div className="glass-card rounded-3xl p-4 sm:p-6 hover:bg-white/[0.06] transition-all duration-300">
+            <ProblemOfTheDay />
+          </div>
+        </section>
 
-          {/* Features */}
-          <section className="py-12 sm:py-20 px-4 w-full max-w-7xl mx-auto">
-            <div className="text-center mb-10 sm:mb-16">
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-6">Level up your game</h2>
+        {/* Features */}
+        <section className="py-12 sm:py-20 px-4 w-full max-w-7xl mx-auto">
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-4">Level up your game</h2>
+            <p className="text-gray-400 max-w-xl mx-auto">Everything you need to track, analyze, and improve your competitive programming journey.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
+              <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
+              <p className="text-gray-400">Detailed rating, rank, and submission tracking across all major platforms in one view.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
-                <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
-                <p className="text-gray-400">Detailed rating and rank tracking.</p>
+            <Link to="/college">
+              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300 h-full">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
+                <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
+                <p className="text-gray-400">Compare with classmates and friends on college-wide leaderboards.</p>
               </div>
-              <Link to="/class">
-                <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300 h-full">
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
-                  <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
-                  <p className="text-gray-400">Class and friend leaderboards.</p>
-                </div>
-              </Link>
-              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
-                <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
-                <p className="text-gray-400">Optimized caching for speed.</p>
-              </div>
+            </Link>
+            <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
+              <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
+              <p className="text-gray-400">Optimized caching and real-time data fetching for instant insights.</p>
             </div>
-          </section>
+            <Link to="/compare">
+              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300 h-full">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-400 mb-6"><Icons.Target /></div>
+                <h3 className="text-xl font-bold text-white mb-3">Head-to-Head Compare</h3>
+                <p className="text-gray-400">Compare profiles side-by-side and discover where you stand against rivals.</p>
+              </div>
+            </Link>
+            <Link to="/contests">
+              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300 h-full">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 mb-6"><Icons.Globe /></div>
+                <h3 className="text-xl font-bold text-white mb-3">Contest Calendar</h3>
+                <p className="text-gray-400">Never miss a contest. Upcoming events from all platforms in one place.</p>
+              </div>
+            </Link>
+            <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-400 mb-6"><Icons.Brain /></div>
+              <h3 className="text-xl font-bold text-white mb-3">AI Coach</h3>
+              <p className="text-gray-400">Get personalized tips and problem recommendations from your AI tutor.</p>
+            </div>
+          </div>
+        </section>
 
         <footer className="w-full border-t border-white/10 bg-black/20 backdrop-blur-lg mt-10">
           <div className="max-w-7xl mx-auto py-8 px-4 flex justify-between items-center">
-            <p className="text-gray-500 text-sm">© {new Date().getFullYear()} CPulse Tracker.</p>
+            <p className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} CPulse Tracker.</p>
           </div>
         </footer>
       </div>
-    </div >
+    </div>
   );
 }
