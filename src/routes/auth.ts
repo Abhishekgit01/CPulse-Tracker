@@ -31,7 +31,8 @@ function sanitizeUser(user: any) {
 /* -------- REGISTER -------- */
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, displayName } = req.body;
+    const body = req.body || {};
+    const { email, password, displayName } = body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });

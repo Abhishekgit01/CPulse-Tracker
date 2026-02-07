@@ -29,9 +29,15 @@ export default function Register() {
     }
   };
 
-  return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 relative">
+        {/* Decorative background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-80 h-80 rounded-full bg-emerald-500/5 blur-3xl" />
+          <div className="absolute -bottom-40 -right-40 w-80 h-80 rounded-full bg-cyan-500/5 blur-3xl" />
+        </div>
+
+        <div className="w-full max-w-md relative">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-600 mb-4 shadow-lg shadow-emerald-500/25">

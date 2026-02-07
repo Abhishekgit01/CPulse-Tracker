@@ -11,18 +11,67 @@ export async function getLeetCodeUser(username: string) {
               ranking
               userAvatar
               reputation
+              aboutMe
+              skillTags
+            }
+            badges {
+              name
+              icon
             }
             submitStats {
               acSubmissionNum {
                 difficulty
                 count
               }
+              totalSubmissionNum {
+                difficulty
+                count
+              }
+            }
+            tagProblemCounts {
+              advanced {
+                tagName
+                problemsSolved
+              }
+              intermediate {
+                tagName
+                problemsSolved
+              }
+              fundamental {
+                tagName
+                problemsSolved
+              }
+            }
+            userCalendar {
+              streak
+              totalActiveDays
+              activeYears
+              submissionCalendar
+            }
+            languageProblemCount {
+              languageName
+              problemsSolved
+            }
+            recentSubmissionList(limit: 10) {
+              title
+              statusDisplay
+              lang
+              timestamp
             }
           }
           userContestRanking(username: $username) {
             rating
             globalRanking
             topPercentage
+            attendedContestsCount
+          }
+          userContestRankingHistory(username: $username) {
+            contest {
+              title
+              startTime
+            }
+            rating
+            ranking
           }
         }
       `,
@@ -43,6 +92,7 @@ export async function getLeetCodeUser(username: string) {
 
     const user = response.data?.data?.matchedUser;
     const contest = response.data?.data?.userContestRanking;
+    const contestHistory = response.data?.data?.userContestRankingHistory || [];
 
     if (!user) {
       throw new Error("LeetCode user not found");
@@ -55,6 +105,51 @@ export async function getLeetCodeUser(username: string) {
       },
       {}
     );
+
+    const totalSubmissions = user.submitStats.totalSubmissionNum.reduce(
+      (acc: any, item: any) => {
+        acc[item.difficulty.toLowerCase()] = item.count;
+        return acc;
+      },
+      {}
+    );
+
+    // Parse language stats
+    const languages = (user.languageProblemCount || []).map((l: any) => ({
+      name: l.languageName,
+      problemsSolved: l.problemsSolved,
+    }));
+
+    // Parse top tags (combine all categories)
+    const allTags = [
+      ...(user.tagProblemCounts?.fundamental || []),
+      ...(user.tagProblemCounts?.intermediate || []),
+      ...(user.tagProblemCounts?.advanced || []),
+    ]
+      .sort((a: any, b: any) => b.problemsSolved - a.problemsSolved)
+      .slice(0, 10)
+      .map((t: any) => ({ tag: t.tagName, count: t.problemsSolved }));
+
+    // Parse recent submissions
+    const recentSubmissions = (user.recentSubmissionList || []).map((s: any) => ({
+      title: s.title,
+      status: s.statusDisplay,
+      language: s.lang,
+      timestamp: new Date(parseInt(s.timestamp) * 1000).toISOString(),
+    }));
+
+    // Parse contest history into growth points
+    const history = contestHistory
+      .filter((c: any) => c.rating > 0)
+      .map((c: any) => ({
+        date: new Date(c.contest.startTime * 1000).toISOString().split("T")[0],
+        score: Math.round(c.rating),
+        contestName: c.contest.title,
+        ranking: c.ranking,
+      }));
+
+    // Parse calendar for streak info
+    const calendar = user.userCalendar || {};
 
     return {
       handle: user.username,
@@ -69,17 +164,36 @@ export async function getLeetCodeUser(username: string) {
       mediumSolved: breakdown.medium || 0,
       hardSolved: breakdown.hard || 0,
 
+      // Acceptance rate data
+      totalSubmissions: (totalSubmissions.all || 0),
+
       // Rich Fields
       avatar: user.profile.userAvatar,
       contestRating: Math.round(contest?.rating || 0),
       globalRanking: contest?.globalRanking || user.profile.ranking,
       topPercentage: contest?.topPercentage || 0,
       reputation: user.profile.reputation || 0,
-      title: contest?.rating ? (contest.rating > 2000 ? "Guardian" : contest.rating > 1600 ? "Knight" : "Member") : "Member",
+      contestsAttended: contest?.attendedContestsCount || 0,
+      title: contest?.rating
+        ? contest.rating > 2000
+          ? "Guardian"
+          : contest.rating > 1600
+          ? "Knight"
+          : "Member"
+        : "Member",
 
-      history: [], // LeetCode has no historical API
+      // New enhanced fields
+      streak: calendar.streak || 0,
+      totalActiveDays: calendar.totalActiveDays || 0,
+      badges: (user.badges || []).map((b: any) => ({ name: b.name, icon: b.icon })),
+      languages,
+      topTags: allTags,
+      recentSubmissions,
+      skillTags: user.profile.skillTags || [],
+      aboutMe: user.profile.aboutMe || "",
+
+      history,
     };
-
   } catch (err: any) {
     console.error("LEETCODE SERVICE ERROR:", err.message);
     throw err;
