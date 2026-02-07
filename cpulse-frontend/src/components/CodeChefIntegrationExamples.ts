@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../api/axios";
 
 /**
  * Example of how to use CodeChef integration in other components
@@ -7,7 +7,7 @@ import axios from "axios";
 // ===================== EXAMPLE 1: Fetch CodeChef Stats =====================
 async function fetchCodeChefUser(username: string) {
   try {
-    const response = await axios.get(`/user/codechef/${username}`);
+    const response = await api.get(`/user/codechef/${username}`);
     console.log("CodeChef Stats:", response.data);
     return response.data;
   } catch (error: any) {

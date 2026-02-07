@@ -13,6 +13,7 @@ export interface IAuthUser extends Document {
   displayName?: string;
   cpProfiles: ICPProfile[];
   onboarded: boolean;
+  classId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +39,7 @@ const AuthUserSchema = new Schema<IAuthUser>(
     displayName: { type: String, trim: true },
     cpProfiles: { type: [CPProfileSchema], default: [] },
     onboarded: { type: Boolean, default: false },
+    classId: { type: String, default: null },
   },
   { timestamps: true }
 );

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 interface LeaderboardUser {
   handle: string;
@@ -22,9 +22,9 @@ export default function EnhancedLeaderboard() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    axios
+    api
       .get("/leaderboard")
-      .then((res) => {
+      .then((res: any) => {
         // Assign default CP score of 0 to accounts without one
         const processedUsers = (res.data || []).map((user: LeaderboardUser) => ({
           ...user,
@@ -33,7 +33,7 @@ export default function EnhancedLeaderboard() {
         setUsers(processedUsers);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error(err);
         setLoading(false);
       });

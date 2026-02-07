@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import api from "../api/axios";
 
 interface User {
@@ -18,7 +17,7 @@ export default function ClassLeaderboard() {
 
   // Fetch all classes on load
   useEffect(() => {
-    axios.get("/classes").then((res) => {
+    api.get("/classes").then((res: any) => {
       setClasses(res.data);
     });
   }, []);

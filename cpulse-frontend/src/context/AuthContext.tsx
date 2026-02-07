@@ -14,6 +14,7 @@ interface AuthUser {
   displayName?: string;
   cpProfiles: CPProfile[];
   onboarded: boolean;
+  classId?: string | null;
 }
 
 interface AuthContextType {

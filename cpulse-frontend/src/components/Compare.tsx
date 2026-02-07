@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import {
     LineChart,
     Line,
@@ -36,8 +36,8 @@ export default function Compare() {
 
         try {
             const [res1, res2] = await Promise.all([
-                axios.get(`/api/metrics/${platform}/${handle1}`),
-                axios.get(`/api/metrics/${platform}/${handle2}`),
+                api.get(`/api/metrics/${platform}/${handle1}`),
+                api.get(`/api/metrics/${platform}/${handle2}`),
             ]);
 
             setData({

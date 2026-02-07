@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
+import api from "../api/axios";
 import {
   Code,
   ExternalLink,
@@ -129,7 +129,7 @@ export default function PersonalGrowth() {
     // Unified Fetch for all platform metrics
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `/api/metrics/${platform}/${username}`,
           { timeout: 15000 }
         );
@@ -143,7 +143,7 @@ export default function PersonalGrowth() {
       }
     };
 
-    axios
+    Promise
       .all([
         fetchUserData(),
       ])
@@ -154,8 +154,8 @@ export default function PersonalGrowth() {
         // Fetch Recommendations if platform is Codeforces
         if (platform === "codeforces") {
           setLoadingRecs(true);
-          axios.get(`/api/recommend/${username}/${res[0].rating}`)
-            .then(recRes => {
+api.get(`/api/recommend/${username}/${res[0].rating}`)
+              .then((recRes: any) => {
               setRecommendations(recRes.data.recommendations || []);
             })
             .catch(err => console.error("Recs Error:", err))
@@ -164,9 +164,9 @@ export default function PersonalGrowth() {
 
         // Fetch AI Analysis
         setLoadingAnalysis(true);
-        axios.get(`/api/analysis/${platform}/${username}`)
-          .then(res => setAiAnalysis(res.data))
-          .catch(err => console.error("Analysis Error:", err))
+        api.get(`/api/analysis/${platform}/${username}`)
+          .then((res: any) => setAiAnalysis(res.data))
+          .catch((err: any) => console.error("Analysis Error:", err))
           .finally(() => setLoadingAnalysis(false));
       })
       .catch((err) => {
@@ -358,7 +358,7 @@ export default function PersonalGrowth() {
             <button
               onClick={() => {
                 if (!classId) return;
-                axios.post(`/api/users/class`, {
+                  api.post(`/api/users/class`, {
                   handle: data.handle,
                   platform: data.platform,
                   classId

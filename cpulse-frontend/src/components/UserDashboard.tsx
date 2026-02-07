@@ -410,6 +410,9 @@ export default function UserDashboard() {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
   const [removeLoading, setRemoveLoading] = useState<string | null>(null);
+  const [classInput, setClassInput] = useState("");
+  const [classLoading, setClassLoading] = useState(false);
+  const [classError, setClassError] = useState("");
 
   useEffect(() => {
     fetchProfileData();
@@ -475,6 +478,35 @@ export default function UserDashboard() {
     user?.cpProfiles.map(
       (p: { platform: string; handle: string }) => p.platform
     ) || [];
+
+  const handleJoinClass = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!classInput.trim()) return;
+    setClassLoading(true);
+    setClassError("");
+    try {
+      await api.post("/auth/class/join", { classId: classInput.trim() });
+      await refreshUser();
+      setClassInput("");
+    } catch (err: any) {
+      setClassError(err.response?.data?.error || "Failed to join class");
+    } finally {
+      setClassLoading(false);
+    }
+  };
+
+  const handleLeaveClass = async () => {
+    setClassLoading(true);
+    setClassError("");
+    try {
+      await api.post("/auth/class/leave");
+      await refreshUser();
+    } catch (err: any) {
+      setClassError(err.response?.data?.error || "Failed to leave class");
+    } finally {
+      setClassLoading(false);
+    }
+  };
   const availablePlatforms = ["leetcode", "codeforces", "codechef"].filter(
     (p) => !linkedPlatforms.includes(p)
   );
@@ -518,9 +550,77 @@ export default function UserDashboard() {
             {user.cpProfiles.length !== 1 ? "s" : ""} linked
           </span>
         </div>
-      </div>
+        </div>
 
-      {/* No profiles */}
+        {/* Class Section */}
+        <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">College Class</h2>
+              <p className="text-sm text-gray-400">
+                {user.classId
+                  ? `You're in class: ${user.classId}`
+                  : "Join a class to see your college leaderboard"}
+              </p>
+            </div>
+          </div>
+
+          {classError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-4 text-sm">
+              {classError}
+            </div>
+          )}
+
+          {user.classId ? (
+            <div className="flex items-center gap-3">
+              <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-emerald-400 font-semibold text-lg">{user.classId}</span>
+                <span className="text-xs text-emerald-400/60 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/15">Joined</span>
+              </div>
+              <Link
+                to="/college"
+                className="px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/20 transition-colors"
+              >
+                View Class
+              </Link>
+              <button
+                onClick={handleLeaveClass}
+                disabled={classLoading}
+                className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+              >
+                {classLoading ? "Leaving..." : "Leave"}
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleJoinClass} className="flex gap-3">
+              <input
+                type="text"
+                value={classInput}
+                onChange={(e) => setClassInput(e.target.value)}
+                placeholder="Enter class ID (e.g. CS-A, ECE-2B)"
+                required
+                className="flex-1 px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+              />
+              <button
+                type="submit"
+                disabled={classLoading || !classInput.trim()}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold hover:from-emerald-500 hover:to-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {classLoading ? "Joining..." : "Join Class"}
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* No profiles */}
       {user.cpProfiles.length === 0 && !addingProfile && (
         <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-700/50 mb-4">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import {
     Radar,
     RadarChart,
@@ -29,7 +29,7 @@ export default function MasteryRadar({ handle, platform }: { handle: string; pla
     useEffect(() => {
         const fetchRadarData = async () => {
             try {
-                const res = await axios.get(`/api/radar/${platform}/${handle}`);
+                const res = await api.get(`/api/radar/${platform}/${handle}`);
                 setData(res.data.radarData);
                 setSummary(res.data.summary);
             } catch (err) {
