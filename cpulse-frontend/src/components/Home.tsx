@@ -171,29 +171,25 @@ export default function Home() {
             Live Leaderboards Active
           </div>
 
-            <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8 text-center">
+            <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8 text-center leading-[1.1]">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-500 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
                 CPulse
-              </span>
-              <span className="inline-flex h-[1.2em] overflow-hidden align-bottom">
-                <RotatingText
-                  texts={[
-                    "Tracker",
-                    "Dashboard",
-                    "Analyzer",
-                    "Engine",
-                    "Radar",
-                    "Hub",
-                  ]}
-                  mainClassName="overflow-hidden"
-                  elementLevelClassName="text-indigo-400"
-                  staggerFrom="first"
-                  staggerDuration={0.03}
-                  rotationInterval={3000}
-                  splitBy="characters"
-                  transition={{ type: "spring", damping: 28, stiffness: 250 }}
-                />
-              </span>
+              </span>{" "}
+              <RotatingText
+                texts={[
+                  "Tracker",
+                  "Radar",
+                  "Engine",
+                  "Hub",
+                ]}
+                mainClassName="overflow-hidden inline-flex"
+                elementLevelClassName="text-indigo-400"
+                staggerFrom="first"
+                staggerDuration={0.03}
+                rotationInterval={3000}
+                splitBy="characters"
+                transition={{ type: "spring", damping: 28, stiffness: 250 }}
+              />
             </h1>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-12 leading-relaxed">
