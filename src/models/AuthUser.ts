@@ -13,7 +13,9 @@ export interface IAuthUser extends Document {
   displayName?: string;
   cpProfiles: ICPProfile[];
   onboarded: boolean;
-  classId?: string;
+  role: "user" | "manager" | "admin";
+  collegeId?: mongoose.Types.ObjectId;
+  courseId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,7 +41,9 @@ const AuthUserSchema = new Schema<IAuthUser>(
     displayName: { type: String, trim: true },
     cpProfiles: { type: [CPProfileSchema], default: [] },
     onboarded: { type: Boolean, default: false },
-    classId: { type: String, default: null },
+    role: { type: String, enum: ["user", "manager", "admin"], default: "user" },
+    collegeId: { type: Schema.Types.ObjectId, ref: "College", default: null },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course", default: null },
   },
   { timestamps: true }
 );

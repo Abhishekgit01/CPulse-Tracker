@@ -24,7 +24,12 @@ import {
   Award,
   Shield,
   Flag,
-  CheckCircle
+  CheckCircle,
+  Clock,
+  Flame,
+  Calendar,
+  Tag,
+  Terminal
 } from "lucide-react";
 import MasteryRadar from "./MasteryRadar";
 import CareerCompass from "./CareerCompass";
@@ -84,6 +89,17 @@ export interface UserStats {
   reputation?: number;
   division?: string;
   country?: string;
+
+  // Enhanced Fields
+  contestsAttended?: number;
+  streak?: number;
+  totalActiveDays?: number;
+  badges?: { name: string; icon?: string }[];
+  languages?: { name: string; problemsSolved: number }[];
+  topTags?: { tag: string; count: number }[];
+  recentSubmissions?: { title: string; status: string; language: string; timestamp: string; tags?: string[]; rating?: number }[];
+  registrationTimeSeconds?: number;
+  city?: string;
 }
 
 /* ===================== STAT CARD  ===================== */
@@ -605,6 +621,170 @@ api.get(`/api/recommend/${username}/${res[0].rating}`)
           </>
         )}
       </div>
+
+      {/* ===================== STREAK & ACTIVITY (LeetCode) ===================== */}
+      {data.platform === "leetcode" && (data.streak || data.totalActiveDays || (data.badges && data.badges.length > 0)) && (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800/50 mt-6">
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3 mb-6">
+            <Flame className="text-orange-500" /> Streak & Activity
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {data.streak !== undefined && (
+              <div className="bg-orange-50 dark:bg-orange-900/20 p-5 rounded-2xl border border-orange-100 dark:border-orange-800/50 text-center">
+                <Flame size={28} className="text-orange-500 mx-auto mb-2" />
+                <p className="text-3xl font-black text-orange-600 dark:text-orange-400">{data.streak}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Day Streak</p>
+              </div>
+            )}
+            {data.totalActiveDays !== undefined && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-800/50 text-center">
+                <Calendar size={28} className="text-blue-500 mx-auto mb-2" />
+                <p className="text-3xl font-black text-blue-600 dark:text-blue-400">{data.totalActiveDays}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Active Days</p>
+              </div>
+            )}
+            {data.contestsAttended !== undefined && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-2xl border border-purple-100 dark:border-purple-800/50 text-center">
+                <Trophy size={28} className="text-purple-500 mx-auto mb-2" />
+                <p className="text-3xl font-black text-purple-600 dark:text-purple-400">{data.contestsAttended}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Contests</p>
+              </div>
+            )}
+          </div>
+          {/* Badges */}
+          {data.badges && data.badges.length > 0 && (
+            <div className="mt-6">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Award size={12} /> Badges Earned
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {data.badges.map((badge, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-full border border-yellow-200 dark:border-yellow-800/50">
+                    {badge.icon && <img src={badge.icon} alt="" className="w-4 h-4" />}
+                    <span className="text-xs font-bold text-yellow-700 dark:text-yellow-300">{badge.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===================== CONTESTS ATTENDED (Codeforces) ===================== */}
+      {data.platform === "codeforces" && data.contestsAttended !== undefined && (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800/50 mt-6">
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3 mb-6">
+            <Trophy className="text-purple-500" /> Contest Summary
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-2xl border border-purple-100 dark:border-purple-800/50 text-center">
+              <Trophy size={28} className="text-purple-500 mx-auto mb-2" />
+              <p className="text-3xl font-black text-purple-600 dark:text-purple-400">{data.contestsAttended}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Contests Attended</p>
+            </div>
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 text-center">
+              <CheckCircle size={28} className="text-emerald-500 mx-auto mb-2" />
+              <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{data.totalSolved || 0}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Problems Solved</p>
+            </div>
+            {data.registrationTimeSeconds && (
+              <div className="bg-gray-50 dark:bg-gray-900/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800/50 text-center">
+                <Calendar size={28} className="text-gray-500 mx-auto mb-2" />
+                <p className="text-sm font-black text-gray-700 dark:text-gray-300">
+                  {new Date(data.registrationTimeSeconds * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                </p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Member Since</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== LANGUAGE STATISTICS ===================== */}
+      {data.languages && data.languages.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800/50 mt-6">
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3 mb-6">
+            <Terminal className="text-cyan-500" /> Languages Used
+          </h3>
+          <div className="space-y-3">
+            {data.languages.slice(0, 8).map((lang, i) => {
+              const maxCount = data.languages![0].problemsSolved;
+              const pct = maxCount > 0 ? (lang.problemsSolved / maxCount) * 100 : 0;
+              return (
+                <div key={i} className="group">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{lang.name}</span>
+                    <span className="text-xs font-bold text-gray-500">{lang.problemsSolved} solved</span>
+                  </div>
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 transition-all duration-700 group-hover:from-indigo-500 group-hover:to-purple-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== TOP TAGS / TOPICS (LeetCode) ===================== */}
+      {data.topTags && data.topTags.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800/50 mt-6">
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3 mb-6">
+            <Tag className="text-emerald-500" /> Top Topics
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            {data.topTags.map((t, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 transition-all hover:scale-105 hover:shadow-md"
+              >
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{t.tag}</span>
+                <span className="text-[10px] font-black bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full">{t.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== RECENT SUBMISSIONS ===================== */}
+      {data.recentSubmissions && data.recentSubmissions.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800/50 mt-6">
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3 mb-6">
+            <Clock className="text-amber-500" /> Recent Submissions
+          </h3>
+          <div className="space-y-3">
+            {data.recentSubmissions.map((sub, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border border-gray-100 dark:border-gray-800/50 hover:border-indigo-200 dark:hover:border-indigo-800/50 transition-all">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{sub.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">{sub.language}</span>
+                    {sub.tags && sub.tags.slice(0, 2).map((tag, j) => (
+                      <span key={j} className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded">{tag}</span>
+                    ))}
+                    {sub.rating ? <span className="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 rounded">R:{sub.rating}</span> : null}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end ml-4 shrink-0">
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg ${
+                    sub.status === "OK" || sub.status === "Accepted"
+                      ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                      : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                  }`}>
+                    {sub.status}
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-1">
+                    {new Date(sub.timestamp).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ===================== GROWTH CHART  ===================== */}
       {data.history?.length > 0 && (

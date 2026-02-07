@@ -39,18 +39,29 @@ export interface IUser extends Document {
   cpulseRating: number;
 
   /* ---------- Rich Profile Info (Maximization) ---------- */
-  avatar?: string;
-  title?: string;
-  contribution?: number;
-  friendOfCount?: number;
-  organization?: string;
-  lastOnlineTimeSeconds?: number;
-  contestRating?: number;
-  globalRanking?: number;
-  topPercentage?: number;
-  reputation?: number;
-  division?: string;
-  country?: string;
+    avatar?: string;
+    title?: string;
+    contribution?: number;
+    friendOfCount?: number;
+    organization?: string;
+    lastOnlineTimeSeconds?: number;
+    contestRating?: number;
+    globalRanking?: number;
+    topPercentage?: number;
+    reputation?: number;
+    division?: string;
+    country?: string;
+
+    /* ---------- Enhanced Fields ---------- */
+    contestsAttended?: number;
+    streak?: number;
+    totalActiveDays?: number;
+    badges?: { name: string; icon?: string }[];
+    languages?: { name: string; problemsSolved: number }[];
+    topTags?: { tag: string; count: number }[];
+    recentSubmissions?: { title: string; status: string; language: string; timestamp: string; tags?: string[]; rating?: number }[];
+    registrationTimeSeconds?: number;
+    city?: string;
 
   /* ---------- Growth ---------- */
   history: GrowthPoint[];
@@ -115,6 +126,24 @@ const UserSchema = new Schema<IUser>(
     reputation: { type: Number },
     division: { type: String },
     country: { type: String },
+
+    /* ---------- Enhanced Fields ---------- */
+    contestsAttended: { type: Number },
+    streak: { type: Number },
+    totalActiveDays: { type: Number },
+    badges: [{ name: { type: String }, icon: { type: String } }],
+    languages: [{ name: { type: String }, problemsSolved: { type: Number } }],
+    topTags: [{ tag: { type: String }, count: { type: Number } }],
+    recentSubmissions: [{
+      title: { type: String },
+      status: { type: String },
+      language: { type: String },
+      timestamp: { type: String },
+      tags: [{ type: String }],
+      rating: { type: Number },
+    }],
+    registrationTimeSeconds: { type: Number },
+    city: { type: String },
 
     /* ---------- Growth History ---------- */
     history: [

@@ -20,6 +20,10 @@ interface CodeChefStats {
   globalRank?: number;
   countryRank?: number;
   problemsSolved?: number;
+  country?: string;
+  avatar?: string;
+  division?: string;
+  title?: string;
   history?: Array<{ date: string; score: number }>;
 }
 
@@ -65,7 +69,7 @@ export default function EnhancedCodeChefStats() {
     setError("");
 
     api
-      .get(`/user/codechef/${username}/history`)
+      .get(`/api/metrics/codechef/${username}`)
       .then((res) => {
         setData(res.data || {});
         setLoading(false);
@@ -164,12 +168,30 @@ export default function EnhancedCodeChefStats() {
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">
-          🍽️ CodeChef Profile
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          {data.handle}
-        </p>
+        <div className="flex items-center gap-6 mb-4">
+          {data.avatar && (
+            <img
+              src={data.avatar}
+              alt={data.handle}
+              className="w-20 h-20 rounded-xl object-cover border-4 border-amber-200 shadow-lg"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          )}
+          <div>
+            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-1">
+              CodeChef Profile
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              {data.handle}
+              {data.country && <span className="ml-2 text-sm text-gray-400">({data.country})</span>}
+            </p>
+            {data.division && (
+              <span className="inline-block mt-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-full">
+                {data.division}
+              </span>
+            )}
+          </div>
+        </div>
         {data.handle && (
           <a
             href={`https://codechef.com/users/${data.handle}`}
@@ -279,23 +301,23 @@ export default function EnhancedCodeChefStats() {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
           <h3 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">
-            💡 Quick Stats
+            Quick Stats
           </h3>
           <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-            <li>✅ Contests Participated: {Math.floor(Math.random() * 50)}</li>
-            <li>🎯 Best Contest Rank: #{Math.floor(Math.random() * 1000)}</li>
-            <li>⚡ Current Streak: {Math.floor(Math.random() * 30)} days</li>
+            <li>Rating: {data.rating || 0}</li>
+            <li>Max Rating: {data.maxRating || 0}</li>
+            <li>{data.division || "Division unknown"}</li>
           </ul>
         </div>
 
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 border border-green-200 dark:border-green-800">
           <h3 className="font-bold text-lg text-green-900 dark:text-green-100 mb-2">
-            🎖️ Achievements
+            Achievements
           </h3>
           <ul className="space-y-2 text-sm text-green-800 dark:text-green-200">
-            <li>🌟 Reached {data.maxRating || 0} rating</li>
-            <li>💎 Solved {data.problemsSolved || 0} problems</li>
-            <li>🏅 Earned {data.stars || 0} stars</li>
+            <li>Reached {data.maxRating || 0} rating</li>
+            <li>Solved {data.problemsSolved || 0} problems</li>
+            <li>Earned {data.stars || 0} stars</li>
           </ul>
         </div>
       </div>

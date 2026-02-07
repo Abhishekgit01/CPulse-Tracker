@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthUser } from "../models/AuthUser";
+import { Course } from "../models/Course";
 import { requireAuth } from "../middleware/auth";
 import { getLeetCodeUser } from "../services/leetcode";
 import { getUserInfo } from "../services/codeforces";
@@ -25,49 +26,55 @@ function sanitizeUser(user: any) {
     displayName: user.displayName,
     cpProfiles: user.cpProfiles,
     onboarded: user.onboarded,
-    classId: user.classId || null,
+    role: user.role || "user",
+    collegeId: user.collegeId || null,
+    courseId: user.courseId || null,
+    college: user.populatedCollege || null,
+    course: user.populatedCourse || null,
   };
 }
 
-/* -------- JOIN CLASS -------- */
-router.post("/join-class", requireAuth, async (req, res) => {
+/* -------- LEAVE COURSE -------- */
+router.post("/leave-course", requireAuth, async (req, res) => {
   try {
-    const { classId } = req.body;
-
-    if (!classId || !classId.trim()) {
-      return res.status(400).json({ error: "Class ID is required" });
-    }
-
     const user = await AuthUser.findById((req as any).user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-    user.classId = classId.trim();
-    await user.save();
+    if (user.courseId) {
+      await Course.findByIdAndUpdate(user.courseId, {
+        $pull: { members: user._id },
+      });
+      user.courseId = undefined;
+      await user.save();
+    }
 
     res.json({ user: sanitizeUser(user) });
   } catch (err) {
-    console.error("JOIN CLASS ERROR:", err);
-    res.status(500).json({ error: "Failed to join class" });
+    console.error("LEAVE COURSE ERROR:", err);
+    res.status(500).json({ error: "Failed to leave course" });
   }
 });
 
-/* -------- LEAVE CLASS -------- */
-router.post("/leave-class", requireAuth, async (req, res) => {
+/* -------- LEAVE COLLEGE -------- */
+router.post("/leave-college", requireAuth, async (req, res) => {
   try {
     const user = await AuthUser.findById((req as any).user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.courseId) {
+      await Course.findByIdAndUpdate(user.courseId, {
+        $pull: { members: user._id },
+      });
     }
 
-    user.classId = undefined;
+    user.collegeId = undefined;
+    user.courseId = undefined;
     await user.save();
 
     res.json({ user: sanitizeUser(user) });
   } catch (err) {
-    console.error("LEAVE CLASS ERROR:", err);
-    res.status(500).json({ error: "Failed to leave class" });
+    console.error("LEAVE COLLEGE ERROR:", err);
+    res.status(500).json({ error: "Failed to leave college" });
   }
 });
 
@@ -138,11 +145,20 @@ router.post("/login", async (req, res) => {
 /* -------- GET CURRENT USER -------- */
 router.get("/me", requireAuth, async (req, res) => {
   try {
-    const user = await AuthUser.findById((req as any).user.id).select("-password");
+    const user = await AuthUser.findById((req as any).user.id)
+      .select("-password")
+      .populate("collegeId", "name code description")
+      .populate("courseId", "name code description");
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    res.json({ user: sanitizeUser(user) });
+    const userObj: any = user.toObject();
+    userObj.populatedCollege = userObj.collegeId && typeof userObj.collegeId === "object" ? userObj.collegeId : null;
+    userObj.populatedCourse = userObj.courseId && typeof userObj.courseId === "object" ? userObj.courseId : null;
+    // Reset to ObjectId strings for sanitizeUser
+    userObj.collegeId = user.collegeId?._id || user.collegeId || null;
+    userObj.courseId = user.courseId?._id || user.courseId || null;
+    res.json({ user: sanitizeUser(userObj) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user" });
   }

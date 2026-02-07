@@ -485,7 +485,7 @@ export default function UserDashboard() {
     setClassLoading(true);
     setClassError("");
     try {
-      await api.post("/auth/class/join", { classId: classInput.trim() });
+      await api.post("/auth/join-class", { classId: classInput.trim() });
       await refreshUser();
       setClassInput("");
     } catch (err: any) {
@@ -499,7 +499,7 @@ export default function UserDashboard() {
     setClassLoading(true);
     setClassError("");
     try {
-      await api.post("/auth/class/leave");
+      await api.post("/auth/leave-class");
       await refreshUser();
     } catch (err: any) {
       setClassError(err.response?.data?.error || "Failed to leave class");

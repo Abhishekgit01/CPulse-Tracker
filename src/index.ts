@@ -23,6 +23,10 @@ import analysisRoutes from "./routes/analysis";
 import detailedProfileRoutes from "./routes/detailedProfile";
 import contestRoutes from "./routes/contests";
 import companyRoutes from "./routes/companies";
+import collegeRoutes from "./routes/college";
+import courseRoutes from "./routes/course";
+import joinRequestRoutes from "./routes/joinRequest";
+import adminRoutes from "./routes/admin";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +55,10 @@ app.use("/api/analysis", analysisRoutes);
 app.use("/api", detailedProfileRoutes);
 app.use("/api/contests", contestRoutes);
 app.use("/api/companies", companyRoutes);
+app.use("/api/colleges", collegeRoutes);
+app.use("/api", courseRoutes);
+app.use("/api/join-requests", joinRequestRoutes);
+app.use("/admin", adminRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers
@@ -65,18 +73,55 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
     });
 
     if (existing) {
-      return res.json({
-        platform: existing.platform,
-        handle: existing.handle,
-        rating: existing.rating,
-        maxRating: existing.maxRating,
-        rank: existing.rank,
-        maxRank: existing.maxRank,
-        totalSolved: (existing as any).totalSolved || (existing as any).problemsSolved || 0,
-        cpulseRating: existing.cpulseRating,
-        history: existing.history || [],
-      });
-    }
+        const ex = existing as any;
+        return res.json({
+          platform: ex.platform,
+          handle: ex.handle,
+          rating: ex.rating,
+          maxRating: ex.maxRating,
+          rank: ex.rank,
+          maxRank: ex.maxRank,
+          totalSolved: ex.totalSolved || ex.problemsSolved || 0,
+          cpulseRating: ex.cpulseRating,
+          history: ex.history || [],
+
+          // Rich profile fields
+          avatar: ex.avatar,
+          title: ex.title,
+          contribution: ex.contribution,
+          friendOfCount: ex.friendOfCount,
+          organization: ex.organization,
+          lastOnlineTimeSeconds: ex.lastOnlineTimeSeconds,
+          contestRating: ex.contestRating,
+          globalRanking: ex.globalRanking,
+          topPercentage: ex.topPercentage,
+          reputation: ex.reputation,
+          division: ex.division,
+          country: ex.country,
+
+          // Enhanced fields
+          contestsAttended: ex.contestsAttended,
+          streak: ex.streak,
+          totalActiveDays: ex.totalActiveDays,
+          badges: ex.badges || [],
+          languages: ex.languages || [],
+          topTags: ex.topTags || [],
+          recentSubmissions: ex.recentSubmissions || [],
+          registrationTimeSeconds: ex.registrationTimeSeconds,
+          city: ex.city,
+
+          // LeetCode specific
+          easySolved: ex.easySolved,
+          mediumSolved: ex.mediumSolved,
+          hardSolved: ex.hardSolved,
+
+          // CodeChef specific
+          stars: ex.stars,
+          globalRank: ex.globalRank,
+          countryRank: ex.countryRank,
+          problemsSolved: ex.problemsSolved,
+        });
+      }
 
     // 2️⃣ Fetch from platform
     let normalizedData: Record<string, any>;
@@ -106,17 +151,54 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
     user.cpulseRating = calculateCPulseRating(user);
     await user.save();
 
-    res.json({
-      platform: user.platform,
-      handle: user.handle,
-      rating: user.rating,
-      maxRating: user.maxRating,
-      rank: user.rank,
-      maxRank: user.maxRank,
-      totalSolved: (user as any).totalSolved || (user as any).problemsSolved || 0,
-      cpulseRating: user.cpulseRating,
-      history: user.history || [],
-    });
+    const u = user as any;
+      res.json({
+        platform: u.platform,
+        handle: u.handle,
+        rating: u.rating,
+        maxRating: u.maxRating,
+        rank: u.rank,
+        maxRank: u.maxRank,
+        totalSolved: u.totalSolved || u.problemsSolved || 0,
+        cpulseRating: u.cpulseRating,
+        history: u.history || [],
+
+        // Rich profile fields
+        avatar: u.avatar,
+        title: u.title,
+        contribution: u.contribution,
+        friendOfCount: u.friendOfCount,
+        organization: u.organization,
+        lastOnlineTimeSeconds: u.lastOnlineTimeSeconds,
+        contestRating: u.contestRating,
+        globalRanking: u.globalRanking,
+        topPercentage: u.topPercentage,
+        reputation: u.reputation,
+        division: u.division,
+        country: u.country,
+
+        // Enhanced fields (from normalizedData, not persisted yet)
+        contestsAttended: normalizedData.contestsAttended,
+        streak: normalizedData.streak,
+        totalActiveDays: normalizedData.totalActiveDays,
+        badges: normalizedData.badges || [],
+        languages: normalizedData.languages || [],
+        topTags: normalizedData.topTags || [],
+        recentSubmissions: normalizedData.recentSubmissions || [],
+        registrationTimeSeconds: normalizedData.registrationTimeSeconds,
+        city: normalizedData.city,
+
+        // LeetCode specific
+        easySolved: u.easySolved,
+        mediumSolved: u.mediumSolved,
+        hardSolved: u.hardSolved,
+
+        // CodeChef specific
+        stars: u.stars,
+        globalRank: u.globalRank,
+        countryRank: u.countryRank,
+        problemsSolved: u.problemsSolved,
+      });
   } catch (err: any) {
     console.error("METRICS ERROR:", err.message);
     res.status(400).json({
