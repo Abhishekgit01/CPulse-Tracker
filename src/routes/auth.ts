@@ -29,6 +29,48 @@ function sanitizeUser(user: any) {
   };
 }
 
+/* -------- JOIN CLASS -------- */
+router.post("/join-class", requireAuth, async (req, res) => {
+  try {
+    const { classId } = req.body;
+
+    if (!classId || !classId.trim()) {
+      return res.status(400).json({ error: "Class ID is required" });
+    }
+
+    const user = await AuthUser.findById((req as any).user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.classId = classId.trim();
+    await user.save();
+
+    res.json({ user: sanitizeUser(user) });
+  } catch (err) {
+    console.error("JOIN CLASS ERROR:", err);
+    res.status(500).json({ error: "Failed to join class" });
+  }
+});
+
+/* -------- LEAVE CLASS -------- */
+router.post("/leave-class", requireAuth, async (req, res) => {
+  try {
+    const user = await AuthUser.findById((req as any).user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.classId = undefined;
+    await user.save();
+
+    res.json({ user: sanitizeUser(user) });
+  } catch (err) {
+    console.error("LEAVE CLASS ERROR:", err);
+    res.status(500).json({ error: "Failed to leave class" });
+  }
+});
+
 /* -------- REGISTER -------- */
 router.post("/register", async (req, res) => {
   try {
@@ -232,47 +274,7 @@ router.get("/profiles/data", requireAuth, async (req, res) => {
   }
 });
 
-/* -------- JOIN CLASS -------- */
-router.post("/join-class", requireAuth, async (req, res) => {
-  try {
-    const { classId } = req.body;
 
-    if (!classId || !classId.trim()) {
-      return res.status(400).json({ error: "Class ID is required" });
-    }
-
-    const user = await AuthUser.findById((req as any).user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    user.classId = classId.trim();
-    await user.save();
-
-    res.json({ user: sanitizeUser(user) });
-  } catch (err) {
-    console.error("JOIN CLASS ERROR:", err);
-    res.status(500).json({ error: "Failed to join class" });
-  }
-});
-
-/* -------- LEAVE CLASS -------- */
-router.post("/leave-class", requireAuth, async (req, res) => {
-  try {
-    const user = await AuthUser.findById((req as any).user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    user.classId = undefined;
-    await user.save();
-
-    res.json({ user: sanitizeUser(user) });
-  } catch (err) {
-    console.error("LEAVE CLASS ERROR:", err);
-    res.status(500).json({ error: "Failed to leave class" });
-  }
-});
 
 /* -------- COMPLETE ONBOARDING -------- */
 router.post("/onboarding/complete", requireAuth, async (req, res) => {
