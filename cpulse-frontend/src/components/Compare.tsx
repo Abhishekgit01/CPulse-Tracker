@@ -11,6 +11,7 @@ import {
     Legend,
 } from "recharts";
 import { UserStats } from "../components/PersonalGrowth";
+import GlassSurface from "./ui/GlassSurface";
 
 interface CompareData {
     user1: UserStats | null;
@@ -35,7 +36,6 @@ export default function Compare() {
         setData({ user1: null, user2: null });
 
         try {
-            // Fetch both users in parallel using the unified metrics endpoint
             const [res1, res2] = await Promise.all([
                 axios.get(`/api/metrics/${platform}/${handle1}`),
                 axios.get(`/api/metrics/${platform}/${handle2}`),
@@ -53,7 +53,6 @@ export default function Compare() {
         }
     };
 
-    // Merge history for chart
     const getChartData = () => {
         if (!data.user1 || !data.user2) return [];
 
@@ -83,154 +82,201 @@ export default function Compare() {
         <div className="max-w-6xl mx-auto p-6 space-y-8">
             {/* HEADER */}
             <div className="text-center">
-                <h1 className="text-4xl font-extrabold text-gray-800 dark:text-white mb-2">
-                    ⚔️ Head-to-Head Comparison
+                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                    Head-to-Head Comparison
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-400">
                     Battle of the Algorithms
                 </p>
             </div>
 
             {/* INPUT FORM */}
-            <form onSubmit={handleCompare} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row gap-4 items-end">
+            <GlassSurface
+                width="100%"
+                height="auto"
+                borderRadius={16}
+                blur={11}
+                brightness={50}
+                opacity={0.93}
+                backgroundOpacity={0.04}
+                className="w-full rounded-2xl"
+            >
+                <form onSubmit={handleCompare} className="p-6 flex flex-col md:flex-row gap-4 items-end w-full">
 
-                <div className="flex-1 w-full">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Platform</label>
-                    <select
-                        value={platform}
-                        onChange={(e) => setPlatform(e.target.value)}
-                        className="w-full p-3 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 outline-none"
+                    <div className="flex-1 w-full">
+                        <label className="block text-sm font-medium mb-1 text-gray-300">Platform</label>
+                        <select
+                            value={platform}
+                            onChange={(e) => setPlatform(e.target.value)}
+                            className="glass-input w-full p-3 rounded-xl text-white focus:outline-none"
+                        >
+                            <option value="codeforces">Codeforces</option>
+                            <option value="codechef">CodeChef</option>
+                            <option value="leetcode">LeetCode</option>
+                        </select>
+                    </div>
+
+                    <div className="flex-1 w-full">
+                        <label className="block text-sm font-medium mb-1 text-gray-300">Contender 1</label>
+                        <input
+                            value={handle1}
+                            onChange={(e) => setHandle1(e.target.value)}
+                            placeholder="Handle 1 (e.g. tourist)"
+                            className="glass-input w-full p-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
+                            required
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-center p-2 text-2xl font-bold text-gray-500">
+                        VS
+                    </div>
+
+                    <div className="flex-1 w-full">
+                        <label className="block text-sm font-medium mb-1 text-gray-300">Contender 2</label>
+                        <input
+                            value={handle2}
+                            onChange={(e) => setHandle2(e.target.value)}
+                            placeholder="Handle 2 (e.g. Benq)"
+                            className="glass-input w-full p-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all disabled:opacity-50"
                     >
-                        <option value="codeforces">Codeforces</option>
-                        <option value="codechef">CodeChef</option>
-                        <option value="leetcode">LeetCode</option>
-                    </select>
-                </div>
-
-                <div className="flex-1 w-full">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Contender 1</label>
-                    <input
-                        value={handle1}
-                        onChange={(e) => setHandle1(e.target.value)}
-                        placeholder="Handle 1 (e.g. tourist)"
-                        className="w-full p-3 rounded-lg border dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-2 focus:ring-blue-500 transition"
-                        required
-                    />
-                </div>
-
-                <div className="flex items-center justify-center p-2 text-2xl font-bold text-gray-400">
-                    VS
-                </div>
-
-                <div className="flex-1 w-full">
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Contender 2</label>
-                    <input
-                        value={handle2}
-                        onChange={(e) => setHandle2(e.target.value)}
-                        placeholder="Handle 2 (e.g. Benq)"
-                        className="w-full p-3 rounded-lg border dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-2 focus:ring-red-500 transition"
-                        required
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full md:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
-                >
-                    {loading ? "Fighting..." : "FIGHT!"}
-                </button>
-            </form>
+                        {loading ? "Fighting..." : "FIGHT!"}
+                    </button>
+                </form>
+            </GlassSurface>
 
             {error && (
-                <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-lg text-center">
+                <div className="glass rounded-xl p-4 text-center border-red-500/30 text-red-400">
                     {error}
                 </div>
             )}
 
             {/* RESULTS */}
             {data.user1 && data.user2 && (
-                <div className="space-y-8 animate-fade-in-up">
+                <div className="space-y-8">
 
                     {/* TALE OF THE TAPE */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                         {/* USER 1 CARD */}
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 rounded-xl border border-blue-200 dark:border-blue-700 text-center relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black text-blue-500">1</div>
-                            <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-300 relative z-10">{data.user1.handle}</h2>
+                        <GlassSurface
+                            width="100%"
+                            height="auto"
+                            borderRadius={16}
+                            blur={11}
+                            brightness={50}
+                            opacity={0.93}
+                            backgroundOpacity={0.04}
+                            className="w-full p-6 rounded-2xl text-center relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl font-black text-blue-500">1</div>
+                            <h2 className="text-2xl font-bold text-blue-400 relative z-10">{data.user1.handle}</h2>
                             <div className="mt-4 space-y-2 relative z-10">
-                                <div className="text-4xl font-extrabold text-gray-800 dark:text-white">
+                                <div className="text-4xl font-extrabold text-white">
                                     {data.user1.rating}
                                 </div>
                                 <div className="text-sm text-gray-500">Current Rating</div>
                             </div>
-                            {/* Winner Badge Logic */}
                             {((data.user1.rating || 0) > (data.user2.rating || 0)) && (
-                                <div className="mt-4 inline-block px-3 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full shadow-sm">
-                                    🏆 RATING LEADER
+                                <div className="mt-4 inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
+                                    RATING LEADER
                                 </div>
                             )}
-                        </div>
+                        </GlassSurface>
 
                         {/* STATS COMPARISON MIDDLE */}
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow text-center flex flex-col justify-center space-y-4">
+                        <GlassSurface
+                            width="100%"
+                            height="auto"
+                            borderRadius={16}
+                            blur={11}
+                            brightness={50}
+                            opacity={0.93}
+                            backgroundOpacity={0.04}
+                            className="w-full p-6 rounded-2xl text-center flex flex-col justify-center space-y-4"
+                        >
                             <div>
-                                <div className="text-xs uppercase tracking-widest text-gray-400">Max Rating</div>
+                                <div className="text-xs uppercase tracking-widest text-gray-500">Max Rating</div>
                                 <div className="flex justify-between items-center text-lg font-bold px-4 mt-1">
-                                    <span className={(data.user1.maxRating || 0) > (data.user2.maxRating || 0) ? "text-green-500" : ""}>{data.user1.maxRating || "N/A"}</span>
-                                    <span className="text-gray-300"> vs </span>
-                                    <span className={(data.user2.maxRating || 0) > (data.user1.maxRating || 0) ? "text-green-500" : ""}>{data.user2.maxRating || "N/A"}</span>
+                                    <span className={(data.user1.maxRating || 0) > (data.user2.maxRating || 0) ? "text-green-400" : "text-white"}>{data.user1.maxRating || "N/A"}</span>
+                                    <span className="text-gray-600"> vs </span>
+                                    <span className={(data.user2.maxRating || 0) > (data.user1.maxRating || 0) ? "text-green-400" : "text-white"}>{data.user2.maxRating || "N/A"}</span>
                                 </div>
                             </div>
-                            <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-                                <div className="text-xs uppercase tracking-widest text-gray-400">Problems Solved</div>
+                            <div className="border-t border-white/5 pt-4">
+                                <div className="text-xs uppercase tracking-widest text-gray-500">Problems Solved</div>
                                 <div className="flex justify-between items-center text-lg font-bold px-4 mt-1">
-                                    <span className={(data.user1.totalSolved || 0) > (data.user2.totalSolved || 0) ? "text-green-500" : ""}>{data.user1.totalSolved || data.user1.problemsSolved || "N/A"}</span>
-                                    <span className="text-gray-300"> vs </span>
-                                    <span className={(data.user2.totalSolved || 0) > (data.user1.totalSolved || 0) ? "text-green-500" : ""}>{data.user2.totalSolved || data.user2.problemsSolved || "N/A"}</span>
+                                    <span className={(data.user1.totalSolved || 0) > (data.user2.totalSolved || 0) ? "text-green-400" : "text-white"}>{data.user1.totalSolved || data.user1.problemsSolved || "N/A"}</span>
+                                    <span className="text-gray-600"> vs </span>
+                                    <span className={(data.user2.totalSolved || 0) > (data.user1.totalSolved || 0) ? "text-green-400" : "text-white"}>{data.user2.totalSolved || data.user2.problemsSolved || "N/A"}</span>
                                 </div>
                             </div>
-                        </div>
+                        </GlassSurface>
 
                         {/* USER 2 CARD */}
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-xl border border-red-200 dark:border-red-700 text-center relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black text-red-500">2</div>
-                            <h2 className="text-2xl font-bold text-red-700 dark:text-red-300 relative z-10">{data.user2.handle}</h2>
+                        <GlassSurface
+                            width="100%"
+                            height="auto"
+                            borderRadius={16}
+                            blur={11}
+                            brightness={50}
+                            opacity={0.93}
+                            backgroundOpacity={0.04}
+                            className="w-full p-6 rounded-2xl text-center relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl font-black text-red-500">2</div>
+                            <h2 className="text-2xl font-bold text-red-400 relative z-10">{data.user2.handle}</h2>
                             <div className="mt-4 space-y-2 relative z-10">
-                                <div className="text-4xl font-extrabold text-gray-800 dark:text-white">
+                                <div className="text-4xl font-extrabold text-white">
                                     {data.user2.rating || "N/A"}
                                 </div>
                                 <div className="text-sm text-gray-500">Current Rating</div>
                             </div>
-                            {/* Winner Badge Logic */}
                             {((data.user2.rating || 0) > (data.user1.rating || 0)) && (
-                                <div className="mt-4 inline-block px-3 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full shadow-sm">
-                                    🏆 RATING LEADER
+                                <div className="mt-4 inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
+                                    RATING LEADER
                                 </div>
                             )}
-                        </div>
+                        </GlassSurface>
                     </div>
 
                     {/* CHART */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-                        <h3 className="text-xl font-bold mb-6 dark:text-white">Rating History Comparison</h3>
-                        <div className="h-80 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                                    <XAxis dataKey="date" stroke="#888" style={{ fontSize: '12px' }} />
-                                    <YAxis stroke="#888" style={{ fontSize: '12px' }} domain={['auto', 'auto']} />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#1f2937', color: '#fff', border: 'none', borderRadius: '8px' }}
-                                    />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="user1" name={data.user1.handle} stroke="#3b82f6" strokeWidth={3} dot={false} connectNulls />
-                                    <Line type="monotone" dataKey="user2" name={data.user2.handle} stroke="#ef4444" strokeWidth={3} dot={false} connectNulls />
-                                </LineChart>
-                            </ResponsiveContainer>
+                    <GlassSurface
+                        width="100%"
+                        height="auto"
+                        borderRadius={16}
+                        blur={11}
+                        brightness={50}
+                        opacity={0.93}
+                        backgroundOpacity={0.04}
+                        className="w-full p-6 rounded-2xl"
+                    >
+                        <div className="w-full">
+                            <h3 className="text-xl font-bold mb-6 text-white">Rating History Comparison</h3>
+                            <div className="h-80 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                                        <XAxis dataKey="date" stroke="#555" style={{ fontSize: '12px' }} />
+                                        <YAxis stroke="#555" style={{ fontSize: '12px' }} domain={['auto', 'auto']} />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: 'rgba(17,24,39,0.9)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(8px)' }}
+                                        />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="user1" name={data.user1.handle} stroke="#3b82f6" strokeWidth={3} dot={false} connectNulls />
+                                        <Line type="monotone" dataKey="user2" name={data.user2.handle} stroke="#ef4444" strokeWidth={3} dot={false} connectNulls />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
-                    </div>
+                    </GlassSurface>
 
                 </div>
             )}

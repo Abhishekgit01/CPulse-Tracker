@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import GlassSurface from "./ui/GlassSurface";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -49,8 +50,17 @@ export default function Register() {
           <p className="text-gray-400">Join CPulse and track your CP journey</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+          {/* Card */}
+          <GlassSurface
+            width="100%"
+            height="auto"
+            borderRadius={16}
+            blur={11}
+            brightness={50}
+            opacity={0.93}
+            backgroundOpacity={0.05}
+            className="w-full rounded-2xl p-8"
+          >
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center">
               {error}
@@ -65,29 +75,29 @@ export default function Register() {
                 placeholder="Your name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
-              />
-            </div>
+                  className="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
                 placeholder="Min 6 characters"
                 required
                 minLength={6}
@@ -115,9 +125,9 @@ export default function Register() {
                 Sign in
               </Link>
             </p>
-          </div>
+            </div>
+          </GlassSurface>
         </div>
       </div>
-    </div>
   );
 }

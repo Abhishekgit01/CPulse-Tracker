@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import GlassSurface from "./ui/GlassSurface";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -53,8 +54,17 @@ export default function Login() {
             <p className="text-gray-400">Sign in to your CPulse account</p>
           </div>
 
-        {/* Card */}
-        <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+          {/* Card */}
+          <GlassSurface
+            width="100%"
+            height="auto"
+            borderRadius={16}
+            blur={11}
+            brightness={50}
+            opacity={0.93}
+            backgroundOpacity={0.05}
+            className="w-full rounded-2xl p-8"
+          >
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center">
               {error}
@@ -71,20 +81,20 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-              />
-            </div>
+                  className="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none"
               />
             </div>
 
@@ -102,16 +112,16 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-400">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">
-                Create one
-              </Link>
-            </p>
-          </div>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-400">
+                Don't have an account?{" "}
+                <Link to="/register" className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">
+                  Create one
+                </Link>
+              </p>
+            </div>
+          </GlassSurface>
         </div>
       </div>
-    </div>
   );
 }

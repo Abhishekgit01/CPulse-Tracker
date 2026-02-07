@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ProblemOfTheDay from "./ProblemOfTheDay";
+import GlassSurface from "./ui/GlassSurface";
 
 // --- Types ---
 interface Star {
@@ -189,41 +190,77 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Daily Problem Section */}
-        <section className="py-20 px-4 w-full max-w-7xl mx-auto">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">📝 Problem of the Day</h2>
-            <p className="text-gray-400">Challenge yourself with today's curated problem</p>
-          </div>
-          <div className="transform hover:scale-105 transition-transform duration-300">
-            <ProblemOfTheDay />
-          </div>
-        </section>
+          {/* Daily Problem Section */}
+          <section className="py-20 px-4 w-full max-w-7xl mx-auto">
+            <div className="mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">📝 Problem of the Day</h2>
+              <p className="text-gray-400">Challenge yourself with today's curated problem</p>
+            </div>
+              <GlassSurface
+                width="100%"
+                height="auto"
+                borderRadius={24}
+                blur={11}
+                brightness={50}
+                opacity={0.93}
+                backgroundOpacity={0.04}
+                className="w-full rounded-3xl p-6 hover:bg-white/[0.06] transition-all duration-300"
+              >
+                <ProblemOfTheDay />
+              </GlassSurface>
+          </section>
 
         {/* ... Rest of features and footer ... */}
         <section className="py-20 px-4 w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Level up your game</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
-              <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
-              <p className="text-gray-400">Detailed rating and rank tracking.</p>
-            </div>
-            <Link to="/class">
-              <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
-                <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
-                <p className="text-gray-400">Class and friend leaderboards.</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <GlassSurface
+                  width="100%"
+                  height="auto"
+                  borderRadius={24}
+                  blur={11}
+                  brightness={50}
+                  opacity={0.93}
+                  backgroundOpacity={0.04}
+                  className="w-full group p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300"
+                >
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
+                  <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
+                  <p className="text-gray-400">Detailed rating and rank tracking.</p>
+                </GlassSurface>
+                <Link to="/class">
+                  <GlassSurface
+                    width="100%"
+                    height="auto"
+                    borderRadius={24}
+                    blur={11}
+                    brightness={50}
+                    opacity={0.93}
+                    backgroundOpacity={0.04}
+                    className="w-full group p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300"
+                  >
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
+                    <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
+                    <p className="text-gray-400">Class and friend leaderboards.</p>
+                  </GlassSurface>
+                </Link>
+                <GlassSurface
+                  width="100%"
+                  height="auto"
+                  borderRadius={24}
+                  blur={11}
+                  brightness={50}
+                  opacity={0.93}
+                  backgroundOpacity={0.04}
+                  className="w-full group p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300"
+                >
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
+                  <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
+                  <p className="text-gray-400">Optimized caching for speed.</p>
+                </GlassSurface>
               </div>
-            </Link>
-            <div className="group relative p-8 rounded-3xl bg-gray-900/40 backdrop-blur-xl border border-white/5 transition-all duration-300 hover:-translate-y-2">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
-              <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
-              <p className="text-gray-400">Optimized caching for speed.</p>
-            </div>
-          </div>
         </section>
 
         <footer className="w-full border-t border-white/10 bg-black/20 backdrop-blur-lg mt-10">
