@@ -3,6 +3,6 @@
   "createdAt": 1770480670496,
   "startupCommands": [
     "npm run dev",
-    "cd cpulse-frontend && npm start"
+    "cd cpulse-frontend; npm start"
   ]
 }
