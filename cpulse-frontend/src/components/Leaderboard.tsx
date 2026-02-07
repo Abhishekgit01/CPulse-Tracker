@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
+import axios from "axios";
 
 interface LeaderboardUser {
   handle: string;
@@ -13,7 +13,7 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
+    axios
       .get("/leaderboard")
       .then((res) => {
         // Assign default CP score of 0 to accounts without one
@@ -22,7 +22,7 @@ export default function Leaderboard() {
           cpulseRating: user.cpulseRating ?? user.rating ?? 0,
         }));
         // Sort by rating descending
-        processedUsers.sort((a: LeaderboardUser, b: LeaderboardUser) =>
+        processedUsers.sort((a: LeaderboardUser, b: LeaderboardUser) => 
           (b.cpulseRating || 0) - (a.cpulseRating || 0)
         );
         setUsers(processedUsers);
@@ -92,10 +92,10 @@ export default function Leaderboard() {
             <div className="col-span-3">
               <span
                 className={`px-3 py-1 text-xs font-semibold rounded-full ${u.platform === "codeforces"
-                  ? "bg-red-500/20 text-red-400"
-                  : u.platform === "codechef"
-                    ? "bg-amber-700/20 text-amber-500"
-                    : "bg-yellow-500/20 text-yellow-400"
+                    ? "bg-red-500/20 text-red-400"
+                    : u.platform === "codechef"
+                      ? "bg-amber-700/20 text-amber-500"
+                      : "bg-yellow-500/20 text-yellow-400"
                   }`}
               >
                 {u.platform === "codeforces"

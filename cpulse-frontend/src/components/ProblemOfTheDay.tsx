@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
+import axios from "axios";
 
 interface Problem {
   id: string;
@@ -39,7 +39,7 @@ export default function ProblemOfTheDay() {
   const [error, setError] = useState("");
   const [dayIndex, setDayIndex] = useState(0);
 
-  // Problem metadata database
+  // Sample problems database (in real app, would come from backend)
   const sampleProblems: Problem[] = [
     {
       id: "1",
@@ -127,7 +127,7 @@ export default function ProblemOfTheDay() {
     const fetchProblemOfDay = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/api/daily-problem");
+        const res = await axios.get("/api/daily-problem");
         setProblem(res.data);
         setLoading(false);
       } catch (err) {
@@ -159,11 +159,7 @@ export default function ProblemOfTheDay() {
     problem.acceptanceRate?.toFixed(1) || "N/A";
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col items-center">
-      {/* Platform Logo Decoration */}
-      <div className="mb-6">
-        <img src="/logo.png" alt="CPulse Logo" className="w-20 h-20 object-contain shadow-2xl rounded-2xl" />
-      </div>
+    <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

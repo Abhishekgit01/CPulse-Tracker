@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../api/axios";
+import axios from "axios";
 import {
     LineChart,
     Line,
@@ -37,8 +37,8 @@ export default function Compare() {
         try {
             // Fetch both users in parallel using the unified metrics endpoint
             const [res1, res2] = await Promise.all([
-                api.get(`/api/metrics/${platform}/${handle1}`),
-                api.get(`/api/metrics/${platform}/${handle2}`),
+                axios.get(`/api/metrics/${platform}/${handle1}`),
+                axios.get(`/api/metrics/${platform}/${handle2}`),
             ]);
 
             setData({

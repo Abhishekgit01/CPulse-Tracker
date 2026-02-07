@@ -2,54 +2,248 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthUser } from "../models/AuthUser";
+import { requireAuth } from "../middleware/auth";
+import { getLeetCodeUser } from "../services/leetcode";
+import { getUserInfo } from "../services/codeforces";
+import { getCodeChefUser } from "../services/codechef";
 
 const router = Router();
-
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
+
+function generateToken(user: any) {
+  return jwt.sign(
+    { id: user._id, email: user.email },
+    JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+}
+
+function sanitizeUser(user: any) {
+  return {
+    id: user._id,
+    email: user.email,
+    displayName: user.displayName,
+    cpProfiles: user.cpProfiles,
+    onboarded: user.onboarded,
+  };
+}
 
 /* -------- REGISTER -------- */
 router.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password, displayName } = req.body;
 
-  const hashed = await bcrypt.hash(password, 10);
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
 
-  const user = await AuthUser.create({
-    email,
-    password: hashed,
-  });
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
 
-  res.json({ message: "User created" });
+    const existing = await AuthUser.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(409).json({ error: "An account with this email already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const user = await AuthUser.create({
+      email: email.toLowerCase(),
+      password: hashed,
+      displayName: displayName || email.split("@")[0],
+    });
+
+    const token = generateToken(user);
+
+    res.json({ token, user: sanitizeUser(user) });
+  } catch (err: any) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ error: "Registration failed" });
+  }
 });
 
 /* -------- LOGIN -------- */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("LOGIN ATTEMPT:", email); // DEBUG
 
-    const user = await AuthUser.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const user = await AuthUser.findOne({ email: email.toLowerCase() });
     if (!user) {
-      console.log("User not found");
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
-      console.log("Password mismatch");
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = generateToken(user);
 
-    console.log("Login success");
-    res.json({ token });
+    res.json({ token, user: sanitizeUser(user) });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/* -------- GET CURRENT USER -------- */
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const user = await AuthUser.findById((req as any).user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ user: sanitizeUser(user) });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+/* -------- ADD CP PROFILE -------- */
+router.post("/profiles", requireAuth, async (req, res) => {
+  try {
+    const { platform, handle } = req.body;
+
+    if (!platform || !handle) {
+      return res.status(400).json({ error: "Platform and handle are required" });
+    }
+
+    if (!["leetcode", "codeforces", "codechef"].includes(platform)) {
+      return res.status(400).json({ error: "Invalid platform" });
+    }
+
+    const user = await AuthUser.findById((req as any).user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if profile already exists
+    const exists = user.cpProfiles.find(
+      (p) => p.platform === platform && p.handle.toLowerCase() === handle.toLowerCase()
+    );
+    if (exists) {
+      return res.status(409).json({ error: "This profile is already linked" });
+    }
+
+    // Verify the handle exists on the platform
+    try {
+      if (platform === "leetcode") {
+        await getLeetCodeUser(handle);
+      } else if (platform === "codeforces") {
+        await getUserInfo(handle);
+      } else if (platform === "codechef") {
+        await getCodeChefUser(handle);
+      }
+    } catch (verifyErr: any) {
+      return res.status(400).json({
+        error: `Could not verify "${handle}" on ${platform}. Please check the username.`,
+      });
+    }
+
+    user.cpProfiles.push({
+      platform,
+      handle: handle.trim(),
+      verified: true,
+      addedAt: new Date(),
+    });
+
+    if (!user.onboarded) {
+      user.onboarded = true;
+    }
+
+    await user.save();
+
+    res.json({ user: sanitizeUser(user) });
+  } catch (err: any) {
+    console.error("ADD PROFILE ERROR:", err);
+    res.status(500).json({ error: "Failed to add profile" });
+  }
+});
+
+/* -------- REMOVE CP PROFILE -------- */
+router.delete("/profiles/:platform/:handle", requireAuth, async (req, res) => {
+  try {
+    const { platform, handle } = req.params;
+
+    const user = await AuthUser.findById((req as any).user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const idx = user.cpProfiles.findIndex(
+      (p) => p.platform === platform && p.handle.toLowerCase() === handle.toLowerCase()
+    );
+
+    if (idx === -1) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    user.cpProfiles.splice(idx, 1);
+    await user.save();
+
+    res.json({ user: sanitizeUser(user) });
+  } catch (err) {
+    console.error("REMOVE PROFILE ERROR:", err);
+    res.status(500).json({ error: "Failed to remove profile" });
+  }
+});
+
+/* -------- GET AGGREGATED PROFILE DATA -------- */
+router.get("/profiles/data", requireAuth, async (req, res) => {
+  try {
+    const user = await AuthUser.findById((req as any).user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const profileData: any[] = [];
+
+    for (const profile of user.cpProfiles) {
+      try {
+        let data: any;
+        if (profile.platform === "leetcode") {
+          data = await getLeetCodeUser(profile.handle);
+        } else if (profile.platform === "codeforces") {
+          data = await getUserInfo(profile.handle);
+        } else if (profile.platform === "codechef") {
+          data = await getCodeChefUser(profile.handle);
+        }
+        profileData.push({ ...data, platform: profile.platform, handle: profile.handle });
+      } catch (err: any) {
+        profileData.push({
+          platform: profile.platform,
+          handle: profile.handle,
+          error: err.message,
+        });
+      }
+    }
+
+    res.json({ profiles: profileData });
+  } catch (err) {
+    console.error("PROFILE DATA ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch profile data" });
+  }
+});
+
+/* -------- COMPLETE ONBOARDING -------- */
+router.post("/onboarding/complete", requireAuth, async (req, res) => {
+  try {
+    const user = await AuthUser.findById((req as any).user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.onboarded = true;
+    await user.save();
+
+    res.json({ user: sanitizeUser(user) });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to complete onboarding" });
   }
 });
 

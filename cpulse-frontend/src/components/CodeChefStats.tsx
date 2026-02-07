@@ -42,7 +42,7 @@ export default function CodeChefStats() {
     setError("");
 
     api
-      .get(`/api/user/codechef/${username}`)
+      .get(`/user/codechef/${username}/history`)
       .then((res) => {
         setData(res.data);
         setLoading(false);

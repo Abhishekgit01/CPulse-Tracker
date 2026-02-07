@@ -55,7 +55,26 @@ export async function getCodeForcesEnhanced(handle: string) {
     let totalSubmissions = submissions.length;
     let acceptedSubmissions = 0;
 
+    let lastAcceptedTime: string | null = null;
+    let solvedRatingTotal = 0;
+    let solvedRatingCount = 0;
+
+    const verdictBreakdown: Record<string, number> = {};
+    const languageBreakdown: Record<string, number> = {};
+    const tagBreakdown: Record<string, number> = {};
+
     submissions.forEach((sub: any) => {
+      // Verdict counts (all submissions)
+      if (sub.verdict) {
+        verdictBreakdown[sub.verdict] = (verdictBreakdown[sub.verdict] || 0) + 1;
+      }
+
+      // Language counts (all submissions)
+      if (sub.programmingLanguage) {
+        languageBreakdown[sub.programmingLanguage] =
+          (languageBreakdown[sub.programmingLanguage] || 0) + 1;
+      }
+
       if (sub.verdict === "OK") {
         acceptedSubmissions++;
         const problemId = `${sub.problem.contestId}-${sub.problem.index}`;
@@ -64,6 +83,29 @@ export async function getCodeForcesEnhanced(handle: string) {
         const difficulty = sub.problem.rating || 0;
         difficultyBreakdown[difficulty] =
           (difficultyBreakdown[difficulty] || 0) + 1;
+
+        // Track last AC time
+        const ts = sub.creationTimeSeconds
+          ? new Date(sub.creationTimeSeconds * 1000).toISOString()
+          : null;
+        if (ts) {
+          if (!lastAcceptedTime || ts > lastAcceptedTime) {
+            lastAcceptedTime = ts;
+          }
+        }
+
+        // Average solved difficulty
+        if (difficulty) {
+          solvedRatingTotal += difficulty;
+          solvedRatingCount += 1;
+        }
+
+        // Tag breakdown (accepted problems only)
+        if (Array.isArray(sub.problem.tags)) {
+          sub.problem.tags.forEach((tag: string) => {
+            tagBreakdown[tag] = (tagBreakdown[tag] || 0) + 1;
+          });
+        }
       }
     });
 
@@ -110,6 +152,16 @@ export async function getCodeForcesEnhanced(handle: string) {
       contribution: user.contribution || 0,
       friendOfCount: user.friendOfCount || 0,
       friends: friendCount,
+
+      // Activity Breakdown
+      verdictBreakdown,
+      languageBreakdown,
+      tagBreakdown,
+      lastAcceptedTime,
+      averageSolvedDifficulty:
+        solvedRatingCount > 0
+          ? Math.round(solvedRatingTotal / solvedRatingCount)
+          : 0,
 
       // Rich Data
       avatar: user.titlePhoto || "",
@@ -185,6 +237,20 @@ export async function getCodeChefEnhanced(username: string) {
     const countryMatch = pageText.match(/Country[\s:]+([^,\n]+)/i);
     const country = countryMatch ? countryMatch[1].trim() : "Unknown";
 
+    // Extract institution/school (best-effort)
+    let institution = "";
+    const institutionMatch = pageText.match(/Institution[\s:]+([^\n]+)/i);
+    if (institutionMatch) {
+      institution = institutionMatch[1].trim();
+    }
+
+    // Extract bio / about (best-effort)
+    let about = "";
+    const aboutMatch = pageText.match(/About\s*Me[\s:]*([^\n]+)/i);
+    if (aboutMatch) {
+      about = aboutMatch[1].trim();
+    }
+
     // Extract problem difficulty breakdown (if available in page)
     let easyCount = 0;
     let mediumCount = 0;
@@ -205,6 +271,15 @@ export async function getCodeChefEnhanced(username: string) {
     const avatarUrl = $(".user-details-container img, .user-avatar img").attr(
       "src"
     );
+
+    // Extract badges (collect alt text or title)
+    const badges: string[] = [];
+    $(".user-badges img, img[alt*='badge'], img[title*='badge']").each((_, el) => {
+      const alt = ($(el).attr("alt") || $(el).attr("title") || "").trim();
+      if (alt && !badges.includes(alt)) {
+        badges.push(alt);
+      }
+    });
 
     return {
       handle: username,
@@ -231,8 +306,11 @@ export async function getCodeChefEnhanced(username: string) {
 
       // Rich Data
       avatar: avatarUrl || "",
-      title: `${stars} ★ ${division}`,
+      title: `${stars}* ${division}`,
       ratingTrend: rating - (maxRating > rating ? maxRating : rating),
+      institution,
+      about,
+      badges,
 
       // Additional Info
       estimatedProblems: problemsSolved, // Total problems attempted/solved
@@ -292,6 +370,15 @@ export async function getLeetCodeEnhanced(username: string) {
               rating
             }
           }
+          recentAcSubmissionList(username: "${username}", limit: 10) {
+            id
+            title
+            titleSlug
+            timestamp
+          }
+          userProfileCalendar(username: "${username}") {
+            submissionCalendar
+          }
         }
       `,
     };
@@ -310,6 +397,8 @@ export async function getLeetCodeEnhanced(username: string) {
 
     const user = response.data?.data?.matchedUser;
     const contest = response.data?.data?.userContestRanking;
+    const recentAccepted = response.data?.data?.recentAcSubmissionList || [];
+    const calendarData = response.data?.data?.userProfileCalendar?.submissionCalendar;
 
     if (!user) {
       throw new Error("LeetCode user not found");
@@ -341,6 +430,31 @@ export async function getLeetCodeEnhanced(username: string) {
       (totalBreakdown.easy || 0) +
       (totalBreakdown.medium || 0) +
       (totalBreakdown.hard || 0);
+
+    // Calculate current activity streak from submission calendar
+    let currentStreak = 0;
+    try {
+      if (calendarData) {
+        const calendarJson = JSON.parse(calendarData);
+        const today = new Date();
+        // normalize to UTC midnight
+        today.setUTCHours(0, 0, 0, 0);
+
+        let cursor = new Date(today);
+        while (true) {
+          const tsSeconds = Math.floor(cursor.getTime() / 1000);
+          const hasSubmission = calendarJson[tsSeconds] && calendarJson[tsSeconds] > 0;
+          if (hasSubmission) {
+            currentStreak++;
+            cursor.setUTCDate(cursor.getUTCDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+    } catch {
+      currentStreak = 0;
+    }
 
     return {
       handle: user.username,
@@ -378,12 +492,17 @@ export async function getLeetCodeEnhanced(username: string) {
             )
             : "0",
       },
+      acceptanceRateOverall:
+        totalProblems > 0
+          ? ((totalSolved / totalProblems) * 100).toFixed(2)
+          : "0",
 
       // Contest Data
       contestRating: Math.round(contest?.rating || 0),
       globalRanking: contest?.globalRanking || user.profile.ranking,
       topPercentage: (contest?.topPercentage || 0).toFixed(2),
       recentContests: contest?.contests || [],
+      contestCount: contest?.contests?.length || 0,
 
       // Profile Info
       avatar: user.profile.userAvatar || "",
@@ -394,6 +513,13 @@ export async function getLeetCodeEnhanced(username: string) {
       school: user.profile.school || "Not specified",
       skillTags: user.profile.skillTags || [],
       aboutMe: user.profile.aboutMe || "",
+      recentAccepted: recentAccepted.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        titleSlug: item.titleSlug,
+        timestamp: item.timestamp ? new Date(Number(item.timestamp) * 1000).toISOString() : "",
+      })),
+      activityStreak: currentStreak,
 
       // Rich Data
       title: contest?.rating

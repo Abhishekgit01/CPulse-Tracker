@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
+import axios from "axios";
 import ContestCard from "./ContestCard";
 import { Calendar, Filter, RefreshCw, TrendingUp } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function ContestCalendar() {
     const fetchContests = async () => {
         try {
             setLoading(true);
-            const response = await api.get<{ success: boolean; contests: Contest[] }>(
+            const response = await axios.get<{ success: boolean; contests: Contest[] }>(
                 "/api/contests"
             );
 
@@ -46,7 +46,7 @@ export default function ContestCalendar() {
     const handleRefresh = async () => {
         try {
             setRefreshing(true);
-            await api.post("/api/contests/refresh");
+            await axios.post("/api/contests/refresh");
             await fetchContests();
         } catch (err) {
             console.error("Error refreshing contests:", err);
@@ -162,8 +162,8 @@ export default function ContestCalendar() {
                             key={platform}
                             onClick={() => setSelectedPlatform(platform)}
                             className={`px-4 py-2 rounded-lg font-medium transition ${selectedPlatform === platform
-                                ? "bg-indigo-600 text-white shadow-md"
-                                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                                    ? "bg-indigo-600 text-white shadow-md"
+                                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                                 }`}
                         >
                             {platform.charAt(0).toUpperCase() + platform.slice(1)}

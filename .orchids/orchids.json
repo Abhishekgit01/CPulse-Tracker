@@ -1,0 +1,8 @@
+{
+  "projectId": "72b116b2-f0e8-4c49-be78-c369adea3c9d",
+  "createdAt": 1770480670496,
+  "startupCommands": [
+    "npm run dev",
+    "cd cpulse-frontend && npm start"
+  ]
+}

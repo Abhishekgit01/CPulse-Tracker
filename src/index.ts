@@ -13,16 +13,14 @@ import { getUserInfo } from "./services/codeforces";
 import { getLeetCodeUser } from "./services/leetcode";
 import { getCodeChefUser } from "./services/codechef";
 import { requireAuth } from "./middleware/auth";
-import userRoutes from "./routes/user";
 import authRoutes from "./routes/auth";
+import userRoutes from "./routes/user";
 import classRoutes from "./routes/class";
 import aiRoutes from "./routes/ai";
 import recommendRoutes from "./routes/recommend";
 import radarRoutes from "./routes/radar";
 import analysisRoutes from "./routes/analysis";
 import detailedProfileRoutes from "./routes/detailedProfile";
-import companiesRoutes from "./routes/companies";
-import contestsRoutes from "./routes/contests";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,15 +39,13 @@ app.get("/", (_req, res) => {
 });
 
 /* ===================== ROUTES ===================== */
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 app.use("/api/class", classRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/recommend", recommendRoutes);
 app.use("/api/radar", radarRoutes);
 app.use("/api/analysis", analysisRoutes);
-app.use("/api/companies", companiesRoutes);
-app.use("/api/contests", contestsRoutes);
 app.use("/api", detailedProfileRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */

@@ -65,7 +65,7 @@ export default function EnhancedCodeChefStats() {
     setError("");
 
     api
-      .get(`/api/user/codechef/${username}`)
+      .get(`/user/codechef/${username}/history`)
       .then((res) => {
         setData(res.data || {});
         setLoading(false);
@@ -189,8 +189,9 @@ export default function EnhancedCodeChefStats() {
             key={idx}
             onMouseEnter={() => setHoveredStat(stat.label)}
             onMouseLeave={() => setHoveredStat(null)}
-            className={`relative overflow-hidden rounded-xl p-6 transition-all duration-300 cursor-pointer transform ${hoveredStat === stat.label ? "scale-105 shadow-2xl" : "shadow-lg"
-              }`}
+            className={`relative overflow-hidden rounded-xl p-6 transition-all duration-300 cursor-pointer transform ${
+              hoveredStat === stat.label ? "scale-105 shadow-2xl" : "shadow-lg"
+            }`}
           >
             {/* Gradient Background */}
             <div

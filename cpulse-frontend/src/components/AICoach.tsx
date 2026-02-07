@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import api from "../api/axios";
+import axios from "axios";
 import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
 
 interface Message {
@@ -40,7 +40,7 @@ export default function AICoach() {
                 rating: 1500, // TODO: Fetch real stats
             };
 
-            const res = await api.post("/api/ai/chat", {
+            const res = await axios.post("/api/ai/chat", {
                 message: userMsg,
                 context
             });

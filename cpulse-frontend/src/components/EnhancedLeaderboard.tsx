@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
+import axios from "axios";
 
 interface LeaderboardUser {
   handle: string;
@@ -22,7 +22,7 @@ export default function EnhancedLeaderboard() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    api
+    axios
       .get("/leaderboard")
       .then((res) => {
         // Assign default CP score of 0 to accounts without one
@@ -152,10 +152,11 @@ export default function EnhancedLeaderboard() {
                     platform as "all" | "codeforces" | "leetcode" | "codechef"
                   )
                 }
-                className={`px-4 py-2 rounded-lg font-medium transition ${platformFilter === platform
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  platformFilter === platform
                     ? "bg-blue-600 text-white shadow-lg scale-105"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  }`}
+                }`}
               >
                 {platform === "all"
                   ? "All Platforms"
@@ -210,10 +211,11 @@ export default function EnhancedLeaderboard() {
                 key={`${u.handle}-${u.platform}`}
                 onMouseEnter={() => setHoveredIndex(idx)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className={`grid grid-cols-12 px-6 py-4 items-center border-b border-gray-100 dark:border-gray-700 transition-all duration-200 ${hoveredIndex === idx
+                className={`grid grid-cols-12 px-6 py-4 items-center border-b border-gray-100 dark:border-gray-700 transition-all duration-200 ${
+                  hoveredIndex === idx
                     ? "bg-blue-50 dark:bg-gray-700 shadow-md translate-x-1"
                     : "hover:bg-gray-50 dark:hover:bg-gray-750"
-                  }`}
+                }`}
               >
                 {/* Rank with medal */}
                 <div className="col-span-1 font-bold">
@@ -236,13 +238,15 @@ export default function EnhancedLeaderboard() {
                 {/* Platform badge */}
                 <div className="col-span-3">
                   <span
-                    className={`inline-block px-3 py-1 text-xs font-bold rounded-full transition-transform ${hoveredIndex === idx ? "scale-110" : ""
-                      } ${u.platform === "codeforces"
+                    className={`inline-block px-3 py-1 text-xs font-bold rounded-full transition-transform ${
+                      hoveredIndex === idx ? "scale-110" : ""
+                    } ${
+                      u.platform === "codeforces"
                         ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200"
                         : u.platform === "codechef"
                           ? "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-200"
                           : "bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-200"
-                      }`}
+                    }`}
                   >
                     {u.platform === "codeforces"
                       ? "⚡ Codeforces"
@@ -254,10 +258,11 @@ export default function EnhancedLeaderboard() {
 
                 {/* CP Score with status */}
                 <div className="col-span-3 text-right">
-                  <span className={`text-2xl font-extrabold ${rating === 0
-                      ? "text-gray-400"
+                  <span className={`text-2xl font-extrabold ${
+                    rating === 0 
+                      ? "text-gray-400" 
                       : "bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-                    }`}>
+                  }`}>
                     {rating.toLocaleString()}
                   </span>
                   {rating === 0 && (
@@ -296,9 +301,9 @@ export default function EnhancedLeaderboard() {
           <p className="text-3xl font-bold text-purple-600">
             {filteredUsers.length > 0
               ? Math.round(
-                filteredUsers.reduce((sum, u) => sum + (u.cpulseRating || 0), 0) /
-                filteredUsers.length
-              )
+                  filteredUsers.reduce((sum, u) => sum + (u.cpulseRating || 0), 0) /
+                    filteredUsers.length
+                )
               : 0}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
