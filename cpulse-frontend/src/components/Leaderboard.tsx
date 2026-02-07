@@ -50,73 +50,80 @@ export default function Leaderboard() {
     );
   }
 
-  return (
-    <div className="max-w-5xl mx-auto p-6">
-      {/* ================= HEADER ================= */}
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-extrabold text-white">
-          🌍 Global Leaderboard
-        </h1>
-        <p className="text-gray-300 mt-2">
-          Ranked by <span className="font-semibold">CP Score</span>
-        </p>
-      </div>
-
-      {/* ================= LEADERBOARD ================= */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
-        {/* Table header */}
-        <div className="grid grid-cols-12 px-6 py-4 text-sm font-semibold text-gray-200 border-b border-white/10">
-          <div className="col-span-2">Rank</div>
-          <div className="col-span-5">User</div>
-          <div className="col-span-3">Platform</div>
-          <div className="col-span-2 text-right">CP Score</div>
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        {/* ================= HEADER ================= */}
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+            Global Leaderboard
+          </h1>
+          <p className="text-gray-300 mt-2 text-sm sm:text-base">
+            Ranked by <span className="font-semibold">CP Score</span>
+          </p>
         </div>
 
-        {/* Rows */}
-        {users.map((u, idx) => (
-          <div
-            key={`${u.handle}-${u.platform}`}
-            className="grid grid-cols-12 px-6 py-4 items-center border-b border-white/5 hover:bg-white/5 transition"
-          >
-            {/* Rank */}
-            <div className="col-span-2 font-bold text-gray-200">
-              #{idx + 1}
-            </div>
-
-            {/* Handle */}
-            <div className="col-span-5 font-medium text-white">
-              {u.handle}
-            </div>
-
-            {/* Platform badge */}
-            <div className="col-span-3">
-              <span
-                className={`px-3 py-1 text-xs font-semibold rounded-full ${u.platform === "codeforces"
-                    ? "bg-red-500/20 text-red-400"
-                    : u.platform === "codechef"
-                      ? "bg-amber-700/20 text-amber-500"
-                      : "bg-yellow-500/20 text-yellow-400"
-                  }`}
-              >
-                {u.platform === "codeforces"
-                  ? "Codeforces"
-                  : u.platform === "codechef"
-                    ? "CodeChef"
-                    : "LeetCode"}
-              </span>
-            </div>
-
-            {/* CP Score */}
-            <div className="col-span-2 text-right font-extrabold">
-              <span className={u.cpulseRating === 0 ? "text-gray-400" : "text-indigo-400"}>
-                {u.cpulseRating ?? 0}
-              </span>
-              {u.cpulseRating === 0 && (
-                <span className="text-xs text-gray-500 ml-2">New</span>
-              )}
-            </div>
+        {/* ================= LEADERBOARD ================= */}
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10">
+          {/* Table header */}
+          <div className="hidden sm:grid grid-cols-12 px-4 sm:px-6 py-4 text-sm font-semibold text-gray-200 border-b border-white/10">
+            <div className="col-span-2">Rank</div>
+            <div className="col-span-5">User</div>
+            <div className="col-span-3">Platform</div>
+            <div className="col-span-2 text-right">CP Score</div>
           </div>
-        ))}
+
+          {/* Rows */}
+          {users.map((u, idx) => (
+            <div
+              key={`${u.handle}-${u.platform}`}
+              className="grid grid-cols-2 sm:grid-cols-12 px-4 sm:px-6 py-3 sm:py-4 items-center border-b border-white/5 hover:bg-white/5 transition gap-y-1"
+            >
+              {/* Rank */}
+              <div className="sm:col-span-2 font-bold text-gray-200 text-sm sm:text-base">
+                #{idx + 1}
+              </div>
+
+              {/* CP Score (mobile: top-right) */}
+              <div className="sm:hidden text-right font-extrabold">
+                <span className={u.cpulseRating === 0 ? "text-gray-400" : "text-indigo-400"}>
+                  {u.cpulseRating ?? 0}
+                </span>
+              </div>
+
+              {/* Handle */}
+              <div className="sm:col-span-5 font-medium text-white text-sm sm:text-base">
+                {u.handle}
+              </div>
+
+              {/* Platform badge */}
+              <div className="sm:col-span-3">
+                <span
+                  className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${u.platform === "codeforces"
+                      ? "bg-red-500/20 text-red-400"
+                      : u.platform === "codechef"
+                        ? "bg-amber-700/20 text-amber-500"
+                        : "bg-yellow-500/20 text-yellow-400"
+                    }`}
+                >
+                  {u.platform === "codeforces"
+                    ? "Codeforces"
+                    : u.platform === "codechef"
+                      ? "CodeChef"
+                      : "LeetCode"}
+                </span>
+              </div>
+
+              {/* CP Score (desktop) */}
+              <div className="hidden sm:block sm:col-span-2 text-right font-extrabold">
+                <span className={u.cpulseRating === 0 ? "text-gray-400" : "text-indigo-400"}>
+                  {u.cpulseRating ?? 0}
+                </span>
+                {u.cpulseRating === 0 && (
+                  <span className="text-xs text-gray-500 ml-2">New</span>
+                )}
+              </div>
+            </div>
+          ))}
 
         {/* Empty state */}
         {!users.length && (

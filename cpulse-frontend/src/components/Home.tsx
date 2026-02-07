@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ProblemOfTheDay from "./ProblemOfTheDay";
-import GlassSurface from "./ui/GlassSurface";
 
 // --- Types ---
 interface Star {
@@ -147,7 +146,7 @@ export default function Home() {
           transition: "transform 0.1s ease-out"
         }}
       >
-        <section className="flex flex-col items-center justify-center pt-32 pb-20 px-4 text-center w-full max-w-7xl mx-auto">
+          <section className="flex flex-col items-center justify-center pt-20 sm:pt-32 pb-12 sm:pb-20 px-4 text-center w-full max-w-7xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-indigo-300 text-sm font-medium mb-8 shadow-[0_0_15px_rgba(99,102,241,0.3)] animate-pulse">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -156,7 +155,7 @@ export default function Home() {
             Live Leaderboards Active
           </div>
 
-          <h1 className="max-w-5xl mx-auto text-6xl md:text-8xl font-extrabold tracking-tight mb-8">
+            <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-500 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
               CPulse Tracker
             </span>
@@ -191,77 +190,41 @@ export default function Home() {
         </section>
 
           {/* Daily Problem Section */}
-          <section className="py-20 px-4 w-full max-w-7xl mx-auto">
-            <div className="mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">📝 Problem of the Day</h2>
-              <p className="text-gray-400">Challenge yourself with today's curated problem</p>
+          <section className="py-12 sm:py-20 px-4 w-full max-w-7xl mx-auto">
+            <div className="mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Problem of the Day</h2>
+              <p className="text-gray-400 text-sm sm:text-base">Challenge yourself with today's curated problem</p>
             </div>
-              <GlassSurface
-                width="100%"
-                height="auto"
-                borderRadius={24}
-                blur={11}
-                brightness={50}
-                opacity={0.93}
-                backgroundOpacity={0.04}
-                className="w-full rounded-3xl p-6 hover:bg-white/[0.06] transition-all duration-300"
-              >
-                <ProblemOfTheDay />
-              </GlassSurface>
+            <div className="glass-card rounded-3xl p-4 sm:p-6 hover:bg-white/[0.06] transition-all duration-300">
+              <ProblemOfTheDay />
+            </div>
           </section>
 
-        {/* ... Rest of features and footer ... */}
-        <section className="py-20 px-4 w-full max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Level up your game</h2>
-          </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <GlassSurface
-                  width="100%"
-                  height="auto"
-                  borderRadius={24}
-                  blur={11}
-                  brightness={50}
-                  opacity={0.93}
-                  backgroundOpacity={0.04}
-                  className="w-full group p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300"
-                >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
-                  <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
-                  <p className="text-gray-400">Detailed rating and rank tracking.</p>
-                </GlassSurface>
-                <Link to="/class">
-                  <GlassSurface
-                    width="100%"
-                    height="auto"
-                    borderRadius={24}
-                    blur={11}
-                    brightness={50}
-                    opacity={0.93}
-                    backgroundOpacity={0.04}
-                    className="w-full group p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300"
-                  >
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
-                    <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
-                    <p className="text-gray-400">Class and friend leaderboards.</p>
-                  </GlassSurface>
-                </Link>
-                <GlassSurface
-                  width="100%"
-                  height="auto"
-                  borderRadius={24}
-                  blur={11}
-                  brightness={50}
-                  opacity={0.93}
-                  backgroundOpacity={0.04}
-                  className="w-full group p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300"
-                >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
-                  <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
-                  <p className="text-gray-400">Optimized caching for speed.</p>
-                </GlassSurface>
+          {/* Features */}
+          <section className="py-12 sm:py-20 px-4 w-full max-w-7xl mx-auto">
+            <div className="text-center mb-10 sm:mb-16">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-6">Level up your game</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-6"><Icons.BarChart /></div>
+                <h3 className="text-xl font-bold text-white mb-3">Comprehensive Stats</h3>
+                <p className="text-gray-400">Detailed rating and rank tracking.</p>
               </div>
-        </section>
+              <Link to="/class">
+                <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300 h-full">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 mb-6"><Icons.Code /></div>
+                  <h3 className="text-xl font-bold text-white mb-3">Competitive Context</h3>
+                  <p className="text-gray-400">Class and friend leaderboards.</p>
+                </div>
+              </Link>
+              <div className="glass-card group p-6 sm:p-8 rounded-3xl hover:-translate-y-2 transition-all duration-300">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mb-6"><Icons.Zap /></div>
+                <h3 className="text-xl font-bold text-white mb-3">Blazing Fast</h3>
+                <p className="text-gray-400">Optimized caching for speed.</p>
+              </div>
+            </div>
+          </section>
 
         <footer className="w-full border-t border-white/10 bg-black/20 backdrop-blur-lg mt-10">
           <div className="max-w-7xl mx-auto py-8 px-4 flex justify-between items-center">

@@ -11,7 +11,6 @@ import {
     Legend,
 } from "recharts";
 import { UserStats } from "../components/PersonalGrowth";
-import GlassSurface from "./ui/GlassSurface";
 
 interface CompareData {
     user1: UserStats | null;
@@ -79,10 +78,10 @@ export default function Compare() {
     const chartData = getChartData();
 
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-8">
             {/* HEADER */}
             <div className="text-center">
-                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
                     Head-to-Head Comparison
                 </h1>
                 <p className="text-gray-400">
@@ -91,17 +90,8 @@ export default function Compare() {
             </div>
 
             {/* INPUT FORM */}
-            <GlassSurface
-                width="100%"
-                height="auto"
-                borderRadius={16}
-                blur={11}
-                brightness={50}
-                opacity={0.93}
-                backgroundOpacity={0.04}
-                className="w-full rounded-2xl"
-            >
-                <form onSubmit={handleCompare} className="p-6 flex flex-col md:flex-row gap-4 items-end w-full">
+            <div className="glass-card rounded-2xl">
+                <form onSubmit={handleCompare} className="p-4 sm:p-6 flex flex-col md:flex-row gap-4 items-end w-full">
 
                     <div className="flex-1 w-full">
                         <label className="block text-sm font-medium mb-1 text-gray-300">Platform</label>
@@ -127,7 +117,7 @@ export default function Compare() {
                         />
                     </div>
 
-                    <div className="flex items-center justify-center p-2 text-2xl font-bold text-gray-500">
+                    <div className="hidden md:flex items-center justify-center p-2 text-2xl font-bold text-gray-500">
                         VS
                     </div>
 
@@ -150,7 +140,7 @@ export default function Compare() {
                         {loading ? "Fighting..." : "FIGHT!"}
                     </button>
                 </form>
-            </GlassSurface>
+            </div>
 
             {error && (
                 <div className="glass rounded-xl p-4 text-center border-red-500/30 text-red-400">
@@ -163,19 +153,10 @@ export default function Compare() {
                 <div className="space-y-8">
 
                     {/* TALE OF THE TAPE */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
 
                         {/* USER 1 CARD */}
-                        <GlassSurface
-                            width="100%"
-                            height="auto"
-                            borderRadius={16}
-                            blur={11}
-                            brightness={50}
-                            opacity={0.93}
-                            backgroundOpacity={0.04}
-                            className="w-full p-6 rounded-2xl text-center relative overflow-hidden"
-                        >
+                        <div className="glass-card p-6 rounded-2xl text-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl font-black text-blue-500">1</div>
                             <h2 className="text-2xl font-bold text-blue-400 relative z-10">{data.user1.handle}</h2>
                             <div className="mt-4 space-y-2 relative z-10">
@@ -189,19 +170,10 @@ export default function Compare() {
                                     RATING LEADER
                                 </div>
                             )}
-                        </GlassSurface>
+                        </div>
 
                         {/* STATS COMPARISON MIDDLE */}
-                        <GlassSurface
-                            width="100%"
-                            height="auto"
-                            borderRadius={16}
-                            blur={11}
-                            brightness={50}
-                            opacity={0.93}
-                            backgroundOpacity={0.04}
-                            className="w-full p-6 rounded-2xl text-center flex flex-col justify-center space-y-4"
-                        >
+                        <div className="glass-card p-6 rounded-2xl text-center flex flex-col justify-center space-y-4">
                             <div>
                                 <div className="text-xs uppercase tracking-widest text-gray-500">Max Rating</div>
                                 <div className="flex justify-between items-center text-lg font-bold px-4 mt-1">
@@ -218,19 +190,10 @@ export default function Compare() {
                                     <span className={(data.user2.totalSolved || 0) > (data.user1.totalSolved || 0) ? "text-green-400" : "text-white"}>{data.user2.totalSolved || data.user2.problemsSolved || "N/A"}</span>
                                 </div>
                             </div>
-                        </GlassSurface>
+                        </div>
 
                         {/* USER 2 CARD */}
-                        <GlassSurface
-                            width="100%"
-                            height="auto"
-                            borderRadius={16}
-                            blur={11}
-                            brightness={50}
-                            opacity={0.93}
-                            backgroundOpacity={0.04}
-                            className="w-full p-6 rounded-2xl text-center relative overflow-hidden"
-                        >
+                        <div className="glass-card p-6 rounded-2xl text-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl font-black text-red-500">2</div>
                             <h2 className="text-2xl font-bold text-red-400 relative z-10">{data.user2.handle}</h2>
                             <div className="mt-4 space-y-2 relative z-10">
@@ -244,23 +207,14 @@ export default function Compare() {
                                     RATING LEADER
                                 </div>
                             )}
-                        </GlassSurface>
+                        </div>
                     </div>
 
                     {/* CHART */}
-                    <GlassSurface
-                        width="100%"
-                        height="auto"
-                        borderRadius={16}
-                        blur={11}
-                        brightness={50}
-                        opacity={0.93}
-                        backgroundOpacity={0.04}
-                        className="w-full p-6 rounded-2xl"
-                    >
+                    <div className="glass-card p-4 sm:p-6 rounded-2xl">
                         <div className="w-full">
                             <h3 className="text-xl font-bold mb-6 text-white">Rating History Comparison</h3>
-                            <div className="h-80 w-full">
+                            <div className="h-64 sm:h-80 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={chartData}>
                                         <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
@@ -276,7 +230,7 @@ export default function Compare() {
                                 </ResponsiveContainer>
                             </div>
                         </div>
-                    </GlassSurface>
+                    </div>
 
                 </div>
             )}

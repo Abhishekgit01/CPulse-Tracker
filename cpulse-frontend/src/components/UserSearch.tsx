@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import GlassSurface from "./ui/GlassSurface";
 
 const PLATFORMS = [
   {
@@ -72,16 +71,7 @@ export default function UserSearch() {
         </div>
 
           {/* Card */}
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={24}
-            blur={11}
-            brightness={50}
-            opacity={0.93}
-            backgroundOpacity={0.04}
-            className="w-full rounded-3xl p-8"
-          >
+          <div className="glass-card rounded-3xl p-4 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Username Input */}
             <div>
@@ -121,7 +111,7 @@ export default function UserSearch() {
               <label className="block text-sm font-semibold text-gray-300 mb-4">
                 Select Platform
               </label>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {PLATFORMS.map((p) => (
                   <button
                     key={p.id}
@@ -186,7 +176,7 @@ export default function UserSearch() {
               <li>- Usernames are case-sensitive on most platforms</li>
             </ul>
             </div>
-          </GlassSurface>
+          </div>
         </div>
       </div>
   );

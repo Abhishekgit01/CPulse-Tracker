@@ -158,26 +158,26 @@ export default function ProblemOfTheDay() {
   const acceptancePercentage =
     problem.acceptanceRate?.toFixed(1) || "N/A";
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-2xl">{PLATFORM_LOGOS[problem.platform]}</span>
-          <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase">
-            Problem of the Day
-          </span>
+    return (
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">{PLATFORM_LOGOS[problem.platform]}</span>
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase">
+              Problem of the Day
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+            {problem.title}
+          </h1>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          {problem.title}
-        </h1>
-      </div>
 
       {/* Main Card */}
       <div
         className={`bg-gradient-to-br ${PLATFORM_COLORS[problem.platform]} rounded-xl shadow-lg overflow-hidden mb-6`}
       >
-        <div className="bg-white dark:bg-gray-800 p-8">
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-8">
           {/* Problem Meta */}
           <div className="flex flex-wrap gap-4 mb-8">
             <div>
@@ -285,7 +285,7 @@ export default function ProblemOfTheDay() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <a
               href={problem.url}
               target="_blank"

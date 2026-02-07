@@ -2,7 +2,6 @@ import { useState } from "react";
 import api from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import GlassSurface from "./ui/GlassSurface";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -51,16 +50,7 @@ export default function Register() {
         </div>
 
           {/* Card */}
-          <GlassSurface
-            width="100%"
-            height="auto"
-            borderRadius={16}
-            blur={11}
-            brightness={50}
-            opacity={0.93}
-            backgroundOpacity={0.05}
-            className="w-full rounded-2xl p-8"
-          >
+          <div className="glass-card rounded-2xl p-6 sm:p-8">
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center">
               {error}
@@ -126,7 +116,7 @@ export default function Register() {
               </Link>
             </p>
             </div>
-          </GlassSurface>
+          </div>
         </div>
       </div>
   );
