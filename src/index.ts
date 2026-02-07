@@ -110,18 +110,25 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
           registrationTimeSeconds: ex.registrationTimeSeconds,
           city: ex.city,
 
-          // LeetCode specific
-          easySolved: ex.easySolved,
-          mediumSolved: ex.mediumSolved,
-          hardSolved: ex.hardSolved,
+    // LeetCode specific
+            easySolved: ex.easySolved,
+            mediumSolved: ex.mediumSolved,
+            hardSolved: ex.hardSolved,
+            totalSubmissions: ex.totalSubmissions,
+            aboutMe: ex.aboutMe || "",
+            skillTags: ex.skillTags || [],
+            realName: ex.realName || "",
+            company: ex.company || "",
+            school: ex.school || "",
+            websites: ex.websites || [],
 
-          // CodeChef specific
-          stars: ex.stars,
-          globalRank: ex.globalRank,
-          countryRank: ex.countryRank,
-          problemsSolved: ex.problemsSolved,
-        });
-      }
+            // CodeChef specific
+            stars: ex.stars,
+            globalRank: ex.globalRank,
+            countryRank: ex.countryRank,
+            problemsSolved: ex.problemsSolved,
+          });
+        }
 
     // 2️⃣ Fetch from platform
     let normalizedData: Record<string, any>;
@@ -188,17 +195,24 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
         registrationTimeSeconds: normalizedData.registrationTimeSeconds,
         city: normalizedData.city,
 
-        // LeetCode specific
-        easySolved: u.easySolved,
-        mediumSolved: u.mediumSolved,
-        hardSolved: u.hardSolved,
+          // LeetCode specific
+          easySolved: u.easySolved,
+          mediumSolved: u.mediumSolved,
+          hardSolved: u.hardSolved,
+          totalSubmissions: normalizedData.totalSubmissions,
+          aboutMe: normalizedData.aboutMe || "",
+          skillTags: normalizedData.skillTags || [],
+          realName: normalizedData.realName || "",
+          company: normalizedData.company || "",
+          school: normalizedData.school || "",
+          websites: normalizedData.websites || [],
 
-        // CodeChef specific
-        stars: u.stars,
-        globalRank: u.globalRank,
-        countryRank: u.countryRank,
-        problemsSolved: u.problemsSolved,
-      });
+          // CodeChef specific
+          stars: u.stars,
+          globalRank: u.globalRank,
+          countryRank: u.countryRank,
+          problemsSolved: u.problemsSolved,
+        });
   } catch (err: any) {
     console.error("METRICS ERROR:", err.message);
     res.status(400).json({

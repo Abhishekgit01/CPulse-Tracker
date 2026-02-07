@@ -142,8 +142,15 @@ const UserSchema = new Schema<IUser>(
       tags: [{ type: String }],
       rating: { type: Number },
     }],
-    registrationTimeSeconds: { type: Number },
-    city: { type: String },
+      registrationTimeSeconds: { type: Number },
+      city: { type: String },
+      totalSubmissions: { type: Number },
+      aboutMe: { type: String },
+      skillTags: [{ type: String }],
+      realName: { type: String },
+      company: { type: String },
+      school: { type: String },
+      websites: [{ type: String }],
 
     /* ---------- Growth History ---------- */
     history: [

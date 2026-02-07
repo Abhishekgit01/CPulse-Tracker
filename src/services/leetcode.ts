@@ -5,15 +5,21 @@ export async function getLeetCodeUser(username: string) {
     const query = {
       query: `
         query getUserProfile($username: String!) {
-          matchedUser(username: $username) {
-            username
-            profile {
-              ranking
-              userAvatar
-              reputation
-              aboutMe
-              skillTags
-            }
+            matchedUser(username: $username) {
+              username
+              profile {
+                ranking
+                userAvatar
+                reputation
+                aboutMe
+                skillTags
+                realName
+                countryName
+                company
+                school
+                websites
+                starRating
+              }
             badges {
               name
               icon
@@ -189,10 +195,15 @@ export async function getLeetCodeUser(username: string) {
       languages,
       topTags: allTags,
       recentSubmissions,
-      skillTags: user.profile.skillTags || [],
-      aboutMe: user.profile.aboutMe || "",
+        skillTags: user.profile.skillTags || [],
+        aboutMe: user.profile.aboutMe || "",
+        realName: user.profile.realName || "",
+        country: user.profile.countryName || "",
+        company: user.profile.company || "",
+        school: user.profile.school || "",
+        websites: user.profile.websites || [],
 
-      history,
+        history,
     };
   } catch (err: any) {
     console.error("LEETCODE SERVICE ERROR:", err.message);

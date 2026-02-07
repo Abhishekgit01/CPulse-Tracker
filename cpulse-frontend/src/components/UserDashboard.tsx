@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { College, Course, JoinRequest } from "../types";
 
 interface LanguageStat {
   name: string;
@@ -410,9 +411,14 @@ export default function UserDashboard() {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
   const [removeLoading, setRemoveLoading] = useState<string | null>(null);
-  const [classInput, setClassInput] = useState("");
-  const [classLoading, setClassLoading] = useState(false);
-  const [classError, setClassError] = useState("");
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCollege, setSelectedCollege] = useState<string | null>(null);
+  const [myRequests, setMyRequests] = useState<JoinRequest[]>([]);
+  const [collegeLoading, setCollegeLoading] = useState(false);
+  const [collegeError, setCollegeError] = useState("");
+  const [requestMessage, setRequestMessage] = useState("");
+  const [showBrowser, setShowBrowser] = useState(false);
 
   useEffect(() => {
     fetchProfileData();
@@ -479,32 +485,75 @@ export default function UserDashboard() {
       (p: { platform: string; handle: string }) => p.platform
     ) || [];
 
-  const handleJoinClass = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!classInput.trim()) return;
-    setClassLoading(true);
-    setClassError("");
+  const fetchColleges = async () => {
     try {
-      await api.post("/auth/join-class", { classId: classInput.trim() });
-      await refreshUser();
-      setClassInput("");
+      const res = await api.get("/api/colleges");
+      setColleges(res.data.colleges);
+    } catch {}
+  };
+
+  const fetchCoursesForCollege = async (collegeId: string) => {
+    setSelectedCollege(collegeId);
+    try {
+      const res = await api.get(`/api/colleges/${collegeId}/courses`);
+      setCourses(res.data.courses);
+    } catch {}
+  };
+
+  const fetchMyRequests = async () => {
+    try {
+      const res = await api.get("/api/join-requests/my");
+      setMyRequests(res.data.requests);
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (user) fetchMyRequests();
+  }, [user?.courseId]); // eslint-disable-line
+
+  const handleRequestJoin = async (collegeId: string, courseId: string) => {
+    setCollegeLoading(true);
+    setCollegeError("");
+    try {
+      await api.post("/api/join-requests", { collegeId, courseId, message: requestMessage });
+      setRequestMessage("");
+      await fetchMyRequests();
+      setShowBrowser(false);
     } catch (err: any) {
-      setClassError(err.response?.data?.error || "Failed to join class");
+      setCollegeError(err.response?.data?.error || "Failed to send request");
     } finally {
-      setClassLoading(false);
+      setCollegeLoading(false);
     }
   };
 
-  const handleLeaveClass = async () => {
-    setClassLoading(true);
-    setClassError("");
+  const handleCancelRequest = async (requestId: string) => {
     try {
-      await api.post("/auth/leave-class");
+      await api.delete(`/api/join-requests/${requestId}`);
+      await fetchMyRequests();
+    } catch {}
+  };
+
+  const handleLeaveCourse = async () => {
+    setCollegeLoading(true);
+    try {
+      await api.post("/auth/leave-course");
       await refreshUser();
     } catch (err: any) {
-      setClassError(err.response?.data?.error || "Failed to leave class");
+      setCollegeError(err.response?.data?.error || "Failed to leave course");
     } finally {
-      setClassLoading(false);
+      setCollegeLoading(false);
+    }
+  };
+
+  const handleLeaveCollege = async () => {
+    setCollegeLoading(true);
+    try {
+      await api.post("/auth/leave-college");
+      await refreshUser();
+    } catch (err: any) {
+      setCollegeError(err.response?.data?.error || "Failed to leave college");
+    } finally {
+      setCollegeLoading(false);
     }
   };
   const availablePlatforms = ["leetcode", "codeforces", "codechef"].filter(
@@ -552,7 +601,7 @@ export default function UserDashboard() {
         </div>
         </div>
 
-        {/* Class Section */}
+        {/* College/Course Section */}
         <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -564,59 +613,224 @@ export default function UserDashboard() {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">College Class</h2>
+              <h2 className="text-lg font-semibold text-white">College & Course</h2>
               <p className="text-sm text-gray-400">
-                {user.classId
-                  ? `You're in class: ${user.classId}`
-                  : "Join a class to see your college leaderboard"}
+                {user.college
+                  ? `${user.college.name}${user.course ? ` - ${user.course.name}` : ""}`
+                  : "Join a college and course to see your leaderboard"}
               </p>
             </div>
+            {(user.role === "manager" || user.role === "admin") && (
+              <span className="ml-auto px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-400 text-xs font-semibold uppercase">
+                {user.role}
+              </span>
+            )}
           </div>
 
-          {classError && (
+          {collegeError && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-4 text-sm">
-              {classError}
+              {collegeError}
             </div>
           )}
 
-          {user.classId ? (
-            <div className="flex items-center gap-3">
-              <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <span className="text-emerald-400 font-semibold text-lg">{user.classId}</span>
+          {/* State: In College + Course */}
+          {user.college && user.course ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <div className="flex-1">
+                  <span className="text-emerald-400 font-semibold">{user.college.name}</span>
+                  <span className="text-gray-500 mx-2">/</span>
+                  <span className="text-white font-medium">{user.course.name}</span>
+                  <span className="text-xs text-gray-500 ml-2">({user.course.code})</span>
+                </div>
                 <span className="text-xs text-emerald-400/60 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/15">Joined</span>
               </div>
-              <Link
-                to="/college"
-                className="px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/20 transition-colors"
-              >
-                View Class
-              </Link>
-              <button
-                onClick={handleLeaveClass}
-                disabled={classLoading}
-                className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
-              >
-                {classLoading ? "Leaving..." : "Leave"}
-              </button>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/college"
+                  className="px-4 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/20 transition-colors"
+                >
+                  View Leaderboard
+                </Link>
+                <button
+                  onClick={handleLeaveCourse}
+                  disabled={collegeLoading}
+                  className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                >
+                  Leave Course
+                </button>
+                <button
+                  onClick={handleLeaveCollege}
+                  disabled={collegeLoading}
+                  className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                >
+                  Leave College
+                </button>
+              </div>
+            </div>
+          ) : user.college && !user.course ? (
+            /* State: In College, No Course */
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-emerald-400 font-semibold">{user.college.name}</span>
+                <span className="text-xs text-amber-400/60 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/15">No course selected</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { setShowBrowser(true); fetchCoursesForCollege(user.collegeId!); }}
+                  className="px-4 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/20 transition-colors"
+                >
+                  Browse Courses
+                </button>
+                <button
+                  onClick={handleLeaveCollege}
+                  disabled={collegeLoading}
+                  className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                >
+                  Leave College
+                </button>
+              </div>
             </div>
           ) : (
-            <form onSubmit={handleJoinClass} className="flex gap-3">
-              <input
-                type="text"
-                value={classInput}
-                onChange={(e) => setClassInput(e.target.value)}
-                placeholder="Enter class ID (e.g. CS-A, ECE-2B)"
-                required
-                className="flex-1 px-4 py-3 rounded-xl bg-gray-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
-              />
+            /* State: Not in College */
+            <div className="space-y-4">
+              {/* Pending Requests */}
+              {myRequests.filter(r => r.status === "pending").length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-400 font-medium">Pending Requests:</p>
+                  {myRequests.filter(r => r.status === "pending").map(req => (
+                    <div key={req._id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                      <div className="flex-1">
+                        <span className="text-amber-400 font-medium">
+                          {typeof req.collegeId === "object" ? req.collegeId.name : "College"}
+                        </span>
+                        {req.courseId && typeof req.courseId === "object" && (
+                          <>
+                            <span className="text-gray-500 mx-2">/</span>
+                            <span className="text-white">{req.courseId.name}</span>
+                          </>
+                        )}
+                        <span className="text-xs text-amber-400/60 ml-2 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/15">Pending</span>
+                      </div>
+                      <button
+                        onClick={() => handleCancelRequest(req._id)}
+                        className="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <button
-                type="submit"
-                disabled={classLoading || !classInput.trim()}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold hover:from-emerald-500 hover:to-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => { setShowBrowser(true); fetchColleges(); }}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold hover:from-emerald-500 hover:to-teal-500 transition-all"
               >
-                {classLoading ? "Joining..." : "Join Class"}
+                Browse Colleges
               </button>
-            </form>
+            </div>
+          )}
+
+          {/* College/Course Browser Modal */}
+          {showBrowser && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBrowser(false)}>
+              <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">
+                    {selectedCollege ? "Select a Course" : "Select a College"}
+                  </h3>
+                  <button onClick={() => { setShowBrowser(false); setSelectedCollege(null); }} className="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+
+                {collegeError && (
+                  <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-4 text-sm">
+                    {collegeError}
+                  </div>
+                )}
+
+                {!selectedCollege ? (
+                  /* College List */
+                  <div className="space-y-2">
+                    {colleges.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">No colleges available yet.</p>
+                    ) : (
+                      colleges.map(college => (
+                        <button
+                          key={college._id}
+                          onClick={() => fetchCoursesForCollege(college._id)}
+                          className="w-full text-left px-4 py-3 rounded-xl bg-gray-800/50 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-white font-medium">{college.name}</span>
+                              <span className="text-xs text-gray-500 ml-2">({college.code})</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span>{college.courseCount || 0} courses</span>
+                              <span>{college.memberCount || 0} members</span>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                            </div>
+                          </div>
+                          {college.description && (
+                            <p className="text-xs text-gray-400 mt-1">{college.description}</p>
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  /* Course List */
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => { setSelectedCollege(null); fetchColleges(); }}
+                      className="text-sm text-indigo-400 hover:text-indigo-300 mb-2 flex items-center gap-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                      Back to Colleges
+                    </button>
+                    {courses.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">No courses in this college yet.</p>
+                    ) : (
+                      courses.map(course => {
+                        const hasPending = myRequests.some(r => r.status === "pending" && typeof r.courseId === "object" && r.courseId?._id === course._id);
+                        return (
+                          <div
+                            key={course._id}
+                            className="px-4 py-3 rounded-xl bg-gray-800/50 border border-white/5"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-white font-medium">{course.name}</span>
+                                <span className="text-xs text-gray-500 ml-2">({course.code})</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">{course.memberCount || 0} members</span>
+                                {hasPending ? (
+                                  <span className="text-xs text-amber-400 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">Pending</span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleRequestJoin(selectedCollege!, course._id)}
+                                    disabled={collegeLoading}
+                                    className="text-xs text-emerald-400 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+                                  >
+                                    {collegeLoading ? "Sending..." : "Request to Join"}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            {course.description && (
+                              <p className="text-xs text-gray-400 mt-1">{course.description}</p>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
 

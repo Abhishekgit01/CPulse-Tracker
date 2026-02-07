@@ -8,13 +8,31 @@ interface CPProfile {
   addedAt: string;
 }
 
-interface AuthUser {
+interface CollegeInfo {
+  _id: string;
+  name: string;
+  code: string;
+  description?: string;
+}
+
+interface CourseInfo {
+  _id: string;
+  name: string;
+  code: string;
+  description?: string;
+}
+
+export interface AuthUser {
   id: string;
   email: string;
   displayName?: string;
   cpProfiles: CPProfile[];
   onboarded: boolean;
-  classId?: string | null;
+  role: "user" | "manager" | "admin";
+  collegeId?: string | null;
+  courseId?: string | null;
+  college?: CollegeInfo | null;
+  course?: CourseInfo | null;
 }
 
 interface AuthContextType {

@@ -1,330 +1,433 @@
-import React, { useEffect, useState } from "react";
-import axios from "../api/axios";
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import {
-    Users,
-    Trophy,
-    BarChart3,
-    Sparkles,
-    ChevronRight,
-    Search,
-    School,
-    ArrowUpRight,
-    TrendingUp,
-    LayoutGrid,
-    Zap
+  Users,
+  Trophy,
+  Search,
+  School,
+  ArrowUpRight,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
 
-interface student {
-    handle: string;
-    platform: string;
-    cpulseRating: number;
-    rating: number;
+interface LeaderboardEntry {
+  userId: string;
+  displayName: string;
+  handle: string;
+  platform: string;
+  rating: number;
+  cpulseRating: number;
+  totalSolved: number;
 }
 
-interface ClassStats {
-    classId: string;
-    totalStudents: number;
-    avgCPulse: number;
-    topPlatform: string;
-    platformDistribution: Record<string, number>;
-    leaderboard: student[];
+interface CollegeInfo {
+  _id: string;
+  name: string;
+  code: string;
+  description?: string;
+  courseCount?: number;
+  memberCount?: number;
+}
+
+interface CourseInfo {
+  _id: string;
+  name: string;
+  code: string;
+  description?: string;
+  memberCount?: number;
 }
 
 export default function CollegeDashboard() {
-    const [classes, setClasses] = useState<string[]>([]);
-    const [selectedClass, setSelectedClass] = useState<string>("");
-    const [stats, setStats] = useState<ClassStats | null>(null);
-    const [insights, setInsights] = useState<string>("");
-    const [loading, setLoading] = useState(false);
-    const [loadingInsights, setLoadingInsights] = useState(false);
-    const [search, setSearch] = useState("");
+  const { user } = useAuth();
+  const [colleges, setColleges] = useState<CollegeInfo[]>([]);
+  const [selectedCollege, setSelectedCollege] = useState<CollegeInfo | null>(null);
+  const [courses, setCourses] = useState<CourseInfo[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
-    useEffect(() => {
-        fetchClasses();
-    }, []);
+  useEffect(() => {
+    fetchColleges();
+  }, []);
 
-    const fetchClasses = async () => {
-        try {
-            const res = await axios.get("/api/class/list");
-            setClasses(res.data.classes);
-            if (res.data.classes.length > 0) {
-                handleSelectClass(res.data.classes[0]);
-            }
-        } catch (err) {
-            console.error("Failed to fetch classes", err);
-        }
-    };
+  // If user has a course, auto-select it
+  useEffect(() => {
+    if (user?.college && user?.course && colleges.length > 0) {
+      const college = colleges.find(c => c._id === user.collegeId);
+      if (college) {
+        setSelectedCollege(college);
+        fetchCourses(college._id, user.courseId || undefined);
+      }
+    }
+  }, [user, colleges]); // eslint-disable-line
 
-    const handleSelectClass = async (classId: string) => {
-        setSelectedClass(classId);
-        setLoading(true);
-        try {
-            const res = await axios.get(`/api/class/${classId}/stats`);
-            setStats(res.data);
+  const fetchColleges = async () => {
+    try {
+      const res = await api.get("/api/colleges");
+      setColleges(res.data.colleges);
+    } catch {}
+  };
 
-            // Fetch AI Insights
-            setLoadingInsights(true);
-            const insightRes = await axios.get(`/api/class/${classId}/ai-insights`);
-            setInsights(insightRes.data.insights);
-        } catch (err) {
-            console.error("Failed to fetch stats", err);
-        } finally {
-            setLoading(false);
-            setLoadingInsights(false);
-        }
-    };
+  const fetchCourses = async (collegeId: string, autoSelectCourseId?: string) => {
+    try {
+      const res = await api.get(`/api/colleges/${collegeId}/courses`);
+      setCourses(res.data.courses);
+      if (autoSelectCourseId) {
+        setSelectedCourse(autoSelectCourseId);
+        fetchLeaderboard(autoSelectCourseId);
+      } else if (res.data.courses.length > 0) {
+        setSelectedCourse(res.data.courses[0]._id);
+        fetchLeaderboard(res.data.courses[0]._id);
+      }
+    } catch {}
+  };
 
-    const filteredClasses = classes.filter(c => c.toLowerCase().includes(search.toLowerCase()));
+  const handleSelectCollege = (college: CollegeInfo) => {
+    setSelectedCollege(college);
+    setSelectedCourse("");
+    setLeaderboard([]);
+    fetchCourses(college._id);
+  };
 
-    return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950 p-4 md:p-8 text-gray-900 dark:text-gray-100">
-            <div className="max-w-7xl mx-auto space-y-8">
+  const fetchLeaderboard = async (courseId: string) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/courses/${courseId}/leaderboard`);
+      setLeaderboard(res.data.leaderboard);
+    } catch {
+      setLeaderboard([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                {/* HEADER SECTION */}
-                <div className="relative overflow-hidden bg-indigo-600 rounded-3xl p-8 md:p-12 text-white shadow-2xl transition-all duration-500 hover:shadow-indigo-500/20">
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div>
-                            <div className="flex items-center gap-2 text-indigo-100 mb-2">
-                                <School size={20} />
-                                <span className="text-sm font-medium tracking-wider uppercase">Institutional Pulse</span>
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">College Dashboard</h1>
-                            <p className="text-indigo-100 max-w-xl text-lg opacity-90">
-                                Tracking mastery across classes and celebrating the collective growth of our competitive programming community.
-                            </p>
-                        </div>
+  const handleSelectCourse = (courseId: string) => {
+    setSelectedCourse(courseId);
+    fetchLeaderboard(courseId);
+  };
 
-                        <div className="flex flex-col gap-4 w-full md:w-auto">
-                            <div className="relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 group-focus-within:text-white transition-colors" size={20} />
-                                <input
-                                    type="text"
-                                    placeholder="Search classes..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full md:w-64 pl-12 pr-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/30 text-white placeholder:text-white/40 transition-all font-medium"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Decorative Background Circles */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
-                </div>
+  const filteredColleges = colleges.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.code.toLowerCase().includes(search.toLowerCase())
+  );
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* CLASS LIST SIDEBAR */}
-                    <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-4 font-bold text-gray-500 dark:text-gray-400 uppercase text-xs tracking-widest">
-                                <LayoutGrid size={14} />
-                                Select Class
-                            </div>
-                            <div className="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                {filteredClasses.length > 0 ? (
-                                    filteredClasses.map((c) => (
-                                        <button
-                                            key={c}
-                                            onClick={() => handleSelectClass(c)}
-                                            className={`flex items-center justify-between px-5 py-4 rounded-xl text-left transition-all duration-200 group ${selectedClass === c
-                                                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                                                : "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                                                }`}
-                                        >
-                                            <span className="font-semibold">{c}</span>
-                                            {selectedClass === c && <ChevronRight size={16} />}
-                                        </button>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-gray-400 text-sm">
-                                        No classes found
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+  const currentCourse = courses.find((c) => c._id === selectedCourse);
 
-                    {/* MAIN CONTENT AREA */}
-                    <div className="lg:col-span-3 space-y-8">
-                        {loading ? (
-                            <div className="space-y-8 animate-pulse">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {[1, 2, 3].map(i => <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-3xl" />)}
-                                </div>
-                                <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-3xl" />
-                                <div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-3xl" />
-                            </div>
-                        ) : stats ? (
-                            <>
-                                {/* STATS GRID */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <StatCard
-                                        icon={<Users className="text-blue-500" />}
-                                        label="Total Students"
-                                        value={stats.totalStudents}
-                                        sub="Enrolled"
-                                        color="blue"
-                                    />
-                                    <StatCard
-                                        icon={<TrendingUp className="text-emerald-500" />}
-                                        label="Average Score"
-                                        value={stats.avgCPulse}
-                                        sub="Class Performance"
-                                        color="emerald"
-                                    />
-                                    <StatCard
-                                        icon={<Zap className="text-amber-500" />}
-                                        label="Top Platform"
-                                        value={stats.topPlatform}
-                                        sub="Most Active On"
-                                        color="amber"
-                                        isText
-                                    />
-                                </div>
-
-                                {/* PERFORMANCE ANALYSIS */}
-                                <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden">
-                                    <div className="flex items-center gap-3 mb-6 relative z-10">
-                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl text-indigo-600">
-                                            <Sparkles size={24} />
-                                        </div>
-                                        <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                                            Performance Analysis
-                                        </h2>
-                                    </div>
-
-                                    <div className="prose dark:prose-invert max-w-none relative z-10">
-                                        {loadingInsights ? (
-                                            <div className="space-y-3 opacity-50">
-                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4"></div>
-                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2"></div>
-                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-5/6"></div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
-                                                {insights ? insights.split('\n').map((line, i) => (
-                                                    <p key={i} className="mb-2">{line}</p>
-                                                )) : (
-                                                    <p className="italic opacity-70">No analysis available for this class yet.</p>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* LEADERBOARD TABLE */}
-                                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
-                                    <div className="p-8 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50 dark:bg-gray-800/50">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600">
-                                                <Trophy size={20} />
-                                            </div>
-                                            <h2 className="text-xl font-bold">Top Performers</h2>
-                                        </div>
-                                        <div className="px-4 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-bold uppercase tracking-widest">
-                                            {selectedClass}
-                                        </div>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead>
-                                                <tr className="bg-gray-50/50 dark:bg-gray-900/30 text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-widest border-b border-gray-100 dark:border-gray-700">
-                                                    <th className="px-8 py-5">Rank</th>
-                                                    <th className="px-8 py-5">Student</th>
-                                                    <th className="px-8 py-5">Platform</th>
-                                                    <th className="px-8 py-5 text-right">Rating</th>
-                                                    <th className="px-8 py-5 text-right">Score</th>
-                                                    <th className="px-8 py-5"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {stats.leaderboard.length > 0 ? (
-                                                    stats.leaderboard.map((student, i) => (
-                                                        <tr key={student.handle} className="group hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b last:border-0 border-gray-100 dark:border-gray-700/50">
-                                                            <td className="px-8 py-5">
-                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
-                                                        ${i === 0 ? "bg-amber-100 text-amber-700" :
-                                                                        i === 1 ? "bg-gray-200 text-gray-700" :
-                                                                            i === 2 ? "bg-orange-100 text-orange-700" :
-                                                                                "text-gray-400 bg-gray-50 dark:bg-gray-800"}`}>
-                                                                    {i + 1}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-8 py-5">
-                                                                <span className="font-semibold text-gray-900 dark:text-gray-100">{student.handle}</span>
-                                                            </td>
-                                                            <td className="px-8 py-5">
-                                                                <span className={`px-2.5 py-1 rounded-md text-[11px] uppercase font-bold tracking-wide
-                                                        ${student.platform === 'codeforces' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                                                                        student.platform === 'leetcode' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
-                                                                            'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>
-                                                                    {student.platform}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-8 py-5 text-right font-medium text-gray-500 dark:text-gray-400 tabular-nums">
-                                                                {student.rating || '-'}
-                                                            </td>
-                                                            <td className="px-8 py-5 text-right">
-                                                                <span className="font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{student.cpulseRating}</span>
-                                                            </td>
-                                                            <td className="px-8 py-5 text-right">
-                                                                <a
-                                                                    href={`/growth/${student.platform}/${student.handle}`}
-                                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100"
-                                                                    title="View Profile"
-                                                                >
-                                                                    <ArrowUpRight size={16} />
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr>
-                                                        <td colSpan={6} className="px-8 py-12 text-center text-gray-500">
-                                                            No students found in this class yet.
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-full mb-6">
-                                    <School size={48} className="text-gray-300 dark:text-gray-600" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-2">Select a Class</h3>
-                                <p className="text-gray-500 dark:text-gray-400">Choose a class from the list to view its analytics.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+  return (
+    <div className="min-h-screen p-4 md:p-8 text-gray-100">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* HEADER */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <div className="flex items-center gap-2 text-indigo-100 mb-2">
+                <School size={20} />
+                <span className="text-sm font-medium tracking-wider uppercase">
+                  College Dashboard
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
+                {selectedCollege ? selectedCollege.name : "Browse Colleges"}
+              </h1>
+              <p className="text-indigo-100 max-w-xl text-lg opacity-90">
+                {selectedCollege
+                  ? `${selectedCollege.courseCount || courses.length} courses, ${selectedCollege.memberCount || 0} members`
+                  : "Explore colleges and course leaderboards"}
+              </p>
             </div>
+
+            <div className="flex flex-col gap-4 w-full md:w-auto">
+              <div className="relative group">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 group-focus-within:text-white transition-colors"
+                  size={20}
+                />
+                <input
+                  type="text"
+                  placeholder="Search colleges..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full md:w-64 pl-12 pr-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/30 text-white placeholder:text-white/40 transition-all font-medium"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
         </div>
-    );
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* SIDEBAR */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* College List */}
+            <div className="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-6 border border-white/10">
+              <div className="flex items-center gap-2 mb-4 font-bold text-gray-400 uppercase text-xs tracking-widest">
+                <School size={14} />
+                {selectedCollege ? "Courses" : "Colleges"}
+              </div>
+
+              {!selectedCollege ? (
+                <div className="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
+                  {filteredColleges.length > 0 ? (
+                    filteredColleges.map((c) => (
+                      <button
+                        key={c._id}
+                        onClick={() => handleSelectCollege(c)}
+                        className="flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all hover:bg-indigo-500/10 hover:border-indigo-500/20 text-gray-300 hover:text-white border border-transparent"
+                      >
+                        <div>
+                          <span className="font-semibold block">{c.name}</span>
+                          <span className="text-xs text-gray-500">{c.code}</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{c.courseCount || 0}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      No colleges found
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
+                  <button
+                    onClick={() => {
+                      setSelectedCollege(null);
+                      setSelectedCourse("");
+                      setLeaderboard([]);
+                      setCourses([]);
+                    }}
+                    className="text-sm text-indigo-400 hover:text-indigo-300 mb-2 flex items-center gap-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    All Colleges
+                  </button>
+                  {courses.map((c) => (
+                    <button
+                      key={c._id}
+                      onClick={() => handleSelectCourse(c._id)}
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all ${
+                        selectedCourse === c._id
+                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+                          : "hover:bg-white/5 text-gray-300 hover:text-white"
+                      }`}
+                    >
+                      <div>
+                        <span className="font-semibold block">{c.name}</span>
+                        <span className="text-xs opacity-60">{c.code}</span>
+                      </div>
+                      <span className="text-xs opacity-60">{c.memberCount || 0}</span>
+                    </button>
+                  ))}
+                  {courses.length === 0 && (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      No courses yet
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* MAIN CONTENT */}
+          <div className="lg:col-span-3 space-y-8">
+            {loading ? (
+              <div className="space-y-8 animate-pulse">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-32 bg-gray-800/50 rounded-3xl" />
+                  ))}
+                </div>
+                <div className="h-96 bg-gray-800/50 rounded-3xl" />
+              </div>
+            ) : selectedCourse && currentCourse ? (
+              <>
+                {/* STATS */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <StatsCard
+                    icon={<Users className="text-blue-400" />}
+                    label="Members"
+                    value={leaderboard.length}
+                    sub={currentCourse.name}
+                    color="blue"
+                  />
+                  <StatsCard
+                    icon={<TrendingUp className="text-emerald-400" />}
+                    label="Avg CPulse"
+                    value={
+                      leaderboard.length > 0
+                        ? Math.round(
+                            leaderboard.reduce((s, l) => s + l.cpulseRating, 0) /
+                              leaderboard.length
+                          )
+                        : 0
+                    }
+                    sub="Course Average"
+                    color="emerald"
+                  />
+                  <StatsCard
+                    icon={<Zap className="text-amber-400" />}
+                    label="Top Rating"
+                    value={
+                      leaderboard.length > 0
+                        ? Math.max(...leaderboard.map((l) => l.cpulseRating))
+                        : 0
+                    }
+                    sub="Highest CPulse"
+                    color="amber"
+                  />
+                </div>
+
+                {/* LEADERBOARD */}
+                <div className="bg-gray-800/50 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/10">
+                  <div className="p-8 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-500/15 rounded-lg text-amber-400">
+                        <Trophy size={20} />
+                      </div>
+                      <h2 className="text-xl font-bold">Course Leaderboard</h2>
+                    </div>
+                    <div className="px-4 py-1.5 bg-gray-700/50 text-gray-300 rounded-full text-xs font-bold uppercase tracking-widest">
+                      {currentCourse.code}
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="text-gray-500 text-xs font-bold uppercase tracking-widest border-b border-white/5">
+                          <th className="px-8 py-5">Rank</th>
+                          <th className="px-8 py-5">Student</th>
+                          <th className="px-8 py-5">Platform</th>
+                          <th className="px-8 py-5 text-right">Rating</th>
+                          <th className="px-8 py-5 text-right">CPulse</th>
+                          <th className="px-8 py-5"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaderboard.length > 0 ? (
+                          leaderboard.map((student, i) => (
+                            <tr
+                              key={`${student.handle}-${student.platform}`}
+                              className="group hover:bg-white/[0.02] transition-colors border-b last:border-0 border-white/5"
+                            >
+                              <td className="px-8 py-5">
+                                <div
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                    i === 0
+                                      ? "bg-amber-500/20 text-amber-400"
+                                      : i === 1
+                                      ? "bg-gray-500/20 text-gray-300"
+                                      : i === 2
+                                      ? "bg-orange-500/20 text-orange-400"
+                                      : "text-gray-500 bg-gray-800/50"
+                                  }`}
+                                >
+                                  {i + 1}
+                                </div>
+                              </td>
+                              <td className="px-8 py-5">
+                                <div>
+                                  <span className="font-semibold text-white">{student.displayName}</span>
+                                  <span className="text-xs text-gray-500 ml-2">@{student.handle}</span>
+                                </div>
+                              </td>
+                              <td className="px-8 py-5">
+                                <span
+                                  className={`px-2.5 py-1 rounded-md text-[11px] uppercase font-bold tracking-wide ${
+                                    student.platform === "codeforces"
+                                      ? "bg-blue-500/15 text-blue-400"
+                                      : student.platform === "leetcode"
+                                      ? "bg-amber-500/15 text-amber-400"
+                                      : "bg-orange-500/15 text-orange-400"
+                                  }`}
+                                >
+                                  {student.platform}
+                                </span>
+                              </td>
+                              <td className="px-8 py-5 text-right font-medium text-gray-400 tabular-nums">
+                                {student.rating || "-"}
+                              </td>
+                              <td className="px-8 py-5 text-right">
+                                <span className="font-bold text-indigo-400 tabular-nums">
+                                  {student.cpulseRating}
+                                </span>
+                              </td>
+                              <td className="px-8 py-5 text-right">
+                                <a
+                                  href={`/growth/${student.platform}/${student.handle}`}
+                                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:bg-indigo-500/10 hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100"
+                                >
+                                  <ArrowUpRight size={16} />
+                                </a>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={6} className="px-8 py-12 text-center text-gray-500">
+                              No members in this course yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 bg-gray-800/50 backdrop-blur-xl rounded-3xl border border-white/10">
+                <div className="p-6 bg-gray-800 rounded-full mb-6">
+                  <School size={48} className="text-gray-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">
+                  {selectedCollege ? "Select a Course" : "Select a College"}
+                </h3>
+                <p className="text-gray-500">
+                  {selectedCollege
+                    ? "Choose a course to view its leaderboard."
+                    : "Choose a college from the list to explore."}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function StatCard({ icon, label, value, sub, color, isText }: any) {
-    const colorClasses: any = {
-        blue: "text-blue-600 bg-blue-50 dark:bg-blue-900/20",
-        emerald: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20",
-        amber: "text-amber-600 bg-amber-50 dark:bg-amber-900/20",
-    };
+function StatsCard({
+  icon,
+  label,
+  value,
+  sub,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  sub: string;
+  color: string;
+}) {
+  const colorClasses: Record<string, string> = {
+    blue: "bg-blue-500/10 border-blue-500/20",
+    emerald: "bg-emerald-500/10 border-emerald-500/20",
+    amber: "bg-amber-500/10 border-amber-500/20",
+  };
 
-    return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl ${colorClasses[color]}`}>
-                    {React.cloneElement(icon, { size: 22 })}
-                </div>
-            </div>
-            <div>
-                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-                <h3 className={`text-3xl font-bold tracking-tight text-gray-900 dark:text-white ${isText ? 'text-xl capitalize' : ''}`}>{value}</h3>
-                <p className="text-sm text-gray-500 mt-1">{sub}</p>
-            </div>
-        </div>
-    );
+  return (
+    <div className={`bg-gray-800/50 backdrop-blur-xl p-6 rounded-2xl border ${colorClasses[color] || "border-white/10"}`}>
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-3 rounded-xl bg-gray-900/50">{icon}</div>
+      </div>
+      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+        {label}
+      </p>
+      <h3 className="text-3xl font-bold tracking-tight text-white">{value}</h3>
+      <p className="text-sm text-gray-500 mt-1">{sub}</p>
+    </div>
+  );
 }
