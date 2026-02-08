@@ -19,6 +19,7 @@ import ProblemOfTheDay from "./components/ProblemOfTheDay";
 import ContestCalendar from "./components/ContestCalendar";
 import ContestHistory from "./components/ContestHistory";
 import Companies from "./components/Companies";
+import DSAPractice from "./components/DSAPractice";
 import CompanyDetails from "./components/CompanyDetails";
 import { SparklesCore } from "./components/ui/sparkles";
 
@@ -32,6 +33,7 @@ const NAV_LINKS = [
   { to: "/contests", label: "Contests" },
   { to: "/contest-history", label: "History" },
   { to: "/companies", label: "Companies" },
+  { to: "/dsa-practice", label: "Practice" },
 ];
 
 export default function App() {
@@ -315,8 +317,9 @@ export default function App() {
             <Route path="/contests" element={<ContestCalendar />} />
             <Route path="/contest-history" element={<ContestHistory />} />
             <Route path="/contest-history/:platform/:handle" element={<ContestHistory />} />
-          <Route path="/companies" element={<Companies />} />
-          <Route path="/companies/:slug" element={<CompanyDetails />} />
+            <Route path="/companies" element={<Companies />} />
+            <Route path="/companies/:slug" element={<CompanyDetails />} />
+            <Route path="/dsa-practice" element={<DSAPractice />} />
           <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
           <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
           <Route path="/onboarding" element={token ? <Onboarding /> : <Navigate to="/login" />} />

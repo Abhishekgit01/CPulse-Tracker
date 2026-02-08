@@ -3,6 +3,22 @@ import axios from "axios";
 
 const router = Router();
 
+async function geminiWithRetry(url: string, body: any, maxRetries = 3): Promise<any> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await axios.post(url, body, { timeout: 30000 });
+    } catch (err: any) {
+      if (err.response?.status === 429 && attempt < maxRetries - 1) {
+        const delay = (attempt + 1) * 3000;
+        console.log(`[AI Chat] Gemini 429, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 router.post("/chat", async (req, res) => {
     try {
         const { message, context } = req.body;
@@ -28,7 +44,7 @@ router.post("/chat", async (req, res) => {
         // Call Gemini API (REST)
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-        const response = await axios.post(url, {
+        const response = await geminiWithRetry(url, {
             contents: [{
                 role: "user",
                 parts: [{

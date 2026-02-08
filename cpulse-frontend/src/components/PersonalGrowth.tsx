@@ -193,15 +193,20 @@ api.get(`/api/recommend/${username}/${res[0].rating}`)
             .catch((err: any) => console.warn("Analysis unavailable:", err?.response?.data?.error || err?.message || "Unknown error"))
             .finally(() => setLoadingAnalysis(false));
       })
-      .catch((err) => {
-        console.error("Stats Error:", err);
-        if (err.response) {
-          const msg = err.response.data.error || "Failed to fetch user data.";
-          const details = err.response.data.details ? ` (${err.response.data.details})` : "";
-          setError(msg + details);
-        } else {
-          setError("Unable to connect to server. Check your network.");
-        }
+        .catch((err) => {
+          console.error("Stats Error:", err?.message || err);
+          if (err.response) {
+            const status = err.response.status;
+            const msg = err.response.data.error || "Failed to fetch user data.";
+            const details = err.response.data.details ? ` (${err.response.data.details})` : "";
+            if (status === 429) {
+              setError("Rate limited by platform. Please wait a moment and try again.");
+            } else {
+              setError(msg + details);
+            }
+          } else {
+            setError(err.message || "Unable to connect to server. Check your network.");
+          }
         setLoading(false);
       });
   }, [username, platform]);

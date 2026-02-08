@@ -4,6 +4,22 @@ import { User } from "../models/User";
 
 const router = express.Router();
 
+async function geminiWithRetry(url: string, body: any, maxRetries = 3): Promise<any> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await axios.post(url, body, { timeout: 30000 });
+    } catch (err: any) {
+      if (err.response?.status === 429 && attempt < maxRetries - 1) {
+        const delay = (attempt + 1) * 3000;
+        console.log(`[Analysis] Gemini 429, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 router.get("/:platform/:handle", async (req, res) => {
     try {
         const { platform, handle } = req.params;
@@ -47,7 +63,7 @@ router.get("/:platform/:handle", async (req, res) => {
         `;
 
         // 3. Call Gemini
-        const aiResponse = await axios.post(
+        const aiResponse = await geminiWithRetry(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }],

@@ -29,6 +29,7 @@ import collegeRoutes from "./routes/college";
 import courseRoutes from "./routes/course";
 import joinRequestRoutes from "./routes/joinRequest";
 import adminRoutes from "./routes/admin";
+import dsaPracticeRoutes from "./routes/dsaPractice";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -63,11 +64,13 @@ app.use("/api/colleges", collegeRoutes);
 app.use("/api", courseRoutes);
 app.use("/api/join-requests", joinRequestRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api/dsa-practice", dsaPracticeRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers
 app.get("/api/metrics/:platform/:username", async (req, res) => {
-  const { platform, username } = req.params;
+  const { platform } = req.params;
+  const username = req.params.username.trim();
 
   try {
     // Always fetch fresh data from the platform API to ensure enhanced fields are populated
@@ -155,7 +158,48 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
         });
   } catch (err: any) {
     console.error("METRICS ERROR:", err.message);
-    res.status(400).json({
+
+    // If rate-limited (429) or timeout, try returning cached data from DB
+    if (err.response?.status === 429 || err.code === "ECONNABORTED") {
+      const cached = await User.findOne({ handle: username, platform });
+      if (cached) {
+        console.log(`[Cache Fallback] Returning cached data for ${platform}/${username}`);
+        const u = cached as any;
+        return res.json({
+          platform: u.platform,
+          handle: u.handle,
+          rating: u.rating,
+          maxRating: u.maxRating,
+          rank: u.rank,
+          maxRank: u.maxRank,
+          totalSolved: u.totalSolved || u.problemsSolved || 0,
+          cpulseRating: u.cpulseRating,
+          history: u.history || [],
+          avatar: u.avatar,
+          title: u.title,
+          contribution: u.contribution,
+          friendOfCount: u.friendOfCount,
+          organization: u.organization,
+          lastOnlineTimeSeconds: u.lastOnlineTimeSeconds,
+          contestRating: u.contestRating,
+          globalRanking: u.globalRanking,
+          topPercentage: u.topPercentage,
+          reputation: u.reputation,
+          division: u.division,
+          country: u.country,
+          stars: u.stars,
+          globalRank: u.globalRank,
+          countryRank: u.countryRank,
+          problemsSolved: u.problemsSolved,
+          easySolved: u.easySolved,
+          mediumSolved: u.mediumSolved,
+          hardSolved: u.hardSolved,
+          _cached: true,
+        });
+      }
+    }
+
+    res.status(err.response?.status === 429 ? 429 : 400).json({
       error: "Failed to fetch metrics",
       details: err.message,
     });

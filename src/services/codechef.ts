@@ -6,12 +6,10 @@ interface GrowthPoint {
     score: number;
 }
 
-export async function getCodeChefUser(username: string) {
-    try {
-        // 1️⃣ Fetch user profile page
-        const response = await axios.get(
-            `https://www.codechef.com/users/${username}`,
-            {
+async function fetchWithRetry(url: string, maxRetries = 3): Promise<any> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            const response = await axios.get(url, {
                 headers: {
                     "User-Agent":
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -19,7 +17,28 @@ export async function getCodeChefUser(username: string) {
                     "Accept-Language": "en-US,en;q=0.5",
                 },
                 timeout: 15000,
+            });
+            return response;
+        } catch (err: any) {
+            if (err.response?.status === 429 && attempt < maxRetries - 1) {
+                const delay = (attempt + 1) * 2000;
+                console.log(`[CodeChef] Rate limited (429), retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+                await new Promise(r => setTimeout(r, delay));
+                continue;
             }
+            throw err;
+        }
+    }
+}
+
+export async function getCodeChefUser(username: string) {
+    // Trim whitespace from username
+    username = username.trim();
+
+    try {
+        // 1️⃣ Fetch user profile page
+        const response = await fetchWithRetry(
+            `https://www.codechef.com/users/${username}`
         );
 
         // 2️⃣ Parse HTML

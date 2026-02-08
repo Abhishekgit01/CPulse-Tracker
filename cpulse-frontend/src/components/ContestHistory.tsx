@@ -33,6 +33,15 @@ interface ContestEntry {
   newRating: number;
   ratingChange: number;
   date: string;
+  color?: string; // CodeChef rating color
+}
+
+interface CodeChefProfile {
+  displayName: string;
+  currentRating: number;
+  highestRating: number;
+  stars: number;
+  starColor: string | null;
 }
 
 const PLATFORM_CONFIG: Record<string, { name: string; color: string; chartColor: string; gradient: string }> = {
@@ -56,6 +65,7 @@ export default function ContestHistory() {
   const [searchHandle, setSearchHandle] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
+  const [codechefProfile, setCodechefProfile] = useState<CodeChefProfile | null>(null);
 
   // Auto-fill from user's linked profiles
   const profiles = user?.cpProfiles || [];
@@ -84,11 +94,15 @@ export default function ContestHistory() {
     setError("");
     setSelectedPlatform(platform);
     setHandle(username);
+    setCodechefProfile(null);
 
     try {
       const res = await api.get(`/api/contest-history/${platform}/${username}`);
       if (res.data.success) {
         setContests(res.data.contests);
+        if (platform === "codechef" && res.data.profile) {
+          setCodechefProfile(res.data.profile);
+        }
       } else {
         setError(res.data.error || "Failed to fetch contest history");
       }
@@ -151,6 +165,7 @@ export default function ContestHistory() {
       date: new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       rating: c.newRating,
       change: c.ratingChange,
+      color: c.color || undefined,
     }));
 
   const config = PLATFORM_CONFIG[selectedPlatform] || PLATFORM_CONFIG.codeforces;
@@ -257,13 +272,62 @@ export default function ContestHistory() {
       {!loading && !error && contests.length > 0 && (
         <>
           {/* Active Handle Banner */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className={`px-3 py-1 rounded-lg bg-gradient-to-r ${config.gradient} text-white text-sm font-bold`}>
-              {config.name}
+            <div className="flex items-center gap-3 mb-6 flex-wrap">
+              <div className={`px-3 py-1 rounded-lg bg-gradient-to-r ${config.gradient} text-white text-sm font-bold`}>
+                {config.name}
+              </div>
+              <span className="text-white font-semibold text-lg">
+                {codechefProfile ? codechefProfile.displayName : `@${handle}`}
+              </span>
+              {codechefProfile && (
+                <>
+                  <span className="text-gray-400 text-sm">@{handle}</span>
+                  <span
+                    className="text-lg font-bold tracking-wide"
+                    style={{ color: codechefProfile.starColor || "#facc15" }}
+                    title={`${codechefProfile.stars}-star rated`}
+                  >
+                    {"★".repeat(codechefProfile.stars)}
+                  </span>
+                </>
+              )}
+              <span className="text-gray-500 text-sm">({totalContests} contests)</span>
             </div>
-            <span className="text-white font-semibold text-lg">@{handle}</span>
-            <span className="text-gray-500 text-sm">({totalContests} contests)</span>
-          </div>
+
+            {/* CodeChef Profile Card */}
+            {codechefProfile && (
+              <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-5 mb-8 flex flex-wrap items-center gap-8">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold"
+                    style={{ backgroundColor: (codechefProfile.starColor || "#facc15") + "22", color: codechefProfile.starColor || "#facc15" }}
+                  >
+                    {codechefProfile.stars}★
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">{codechefProfile.displayName}</p>
+                    <p className="text-gray-400 text-sm">@{handle}</p>
+                  </div>
+                </div>
+                <div className="h-10 w-px bg-white/10 hidden sm:block" />
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">Current Rating</p>
+                  <p className="text-2xl font-bold" style={{ color: codechefProfile.starColor || "#facc15" }}>
+                    {codechefProfile.currentRating}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">Highest Rating</p>
+                  <p className="text-2xl font-bold text-white">
+                    {codechefProfile.highestRating}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">Contests</p>
+                  <p className="text-2xl font-bold text-white">{totalContests}</p>
+                </div>
+              </div>
+            )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
@@ -296,46 +360,63 @@ export default function ContestHistory() {
           </div>
 
           {/* Rating Chart */}
-          {chartData.length > 1 && (
-            <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-6 mb-8">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingUp size={20} className="text-indigo-400" />
-                Rating Progression
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#6b7280"
-                    tick={{ fontSize: 12 }}
-                    interval={Math.max(0, Math.floor(chartData.length / 10))}
-                  />
-                  <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1f2937",
-                      border: "1px solid #374151",
-                      borderRadius: "12px",
-                      color: "#fff",
-                    }}
-                    formatter={(value: number, name: string) => {
-                      if (name === "rating") return [value, "Rating"];
-                      return [value, "Change"];
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="rating"
-                    stroke={config.chartColor}
-                    strokeWidth={2}
-                    dot={{ r: chartData.length > 30 ? 0 : 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+            {chartData.length > 1 && (
+              <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-6 mb-8">
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <TrendingUp size={20} className="text-indigo-400" />
+                  Rating Progression
+                </h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis
+                      dataKey="date"
+                      stroke="#6b7280"
+                      tick={{ fontSize: 12 }}
+                      interval={Math.max(0, Math.floor(chartData.length / 10))}
+                    />
+                    <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1f2937",
+                        border: "1px solid #374151",
+                        borderRadius: "12px",
+                        color: "#fff",
+                      }}
+                      formatter={(value: number, name: string) => {
+                        if (name === "rating") return [value, "Rating"];
+                        return [value, "Change"];
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="rating"
+                      stroke={config.chartColor}
+                      strokeWidth={2}
+                      dot={
+                        selectedPlatform === "codechef" && chartData.length <= 80
+                          ? (props: any) => {
+                              const { cx, cy, payload } = props;
+                              return (
+                                <circle
+                                  key={`dot-${cx}-${cy}`}
+                                  cx={cx}
+                                  cy={cy}
+                                  r={3}
+                                  fill={payload.color || config.chartColor}
+                                  stroke={payload.color || config.chartColor}
+                                  strokeWidth={1}
+                                />
+                              );
+                            }
+                          : { r: chartData.length > 30 ? 0 : 3 }
+                      }
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
           {/* Contest Table */}
           <div className="bg-gray-800/50 border border-white/10 rounded-2xl overflow-hidden">
@@ -414,8 +495,10 @@ export default function ContestHistory() {
                           {c.ratingChange}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-right text-white font-semibold">
-                        {c.newRating}
+                      <td className="px-6 py-4 text-sm text-right font-semibold"
+                        style={c.color ? { color: c.color } : undefined}
+                      >
+                        <span className={c.color ? "" : "text-white"}>{c.newRating}</span>
                       </td>
                     </tr>
                   ))}
