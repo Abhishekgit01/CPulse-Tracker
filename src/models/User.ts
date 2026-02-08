@@ -60,10 +60,17 @@ export interface IUser extends Document {
     languages?: { name: string; problemsSolved: number }[];
     topTags?: { tag: string; count: number }[];
     recentSubmissions?: { title: string; status: string; language: string; timestamp: string; tags?: string[]; rating?: number }[];
-    registrationTimeSeconds?: number;
-    city?: string;
+      registrationTimeSeconds?: number;
+      city?: string;
+      totalSubmissions?: number;
+      aboutMe?: string;
+      skillTags?: string[];
+      realName?: string;
+      company?: string;
+      school?: string;
+      websites?: string[];
 
-  /* ---------- Growth ---------- */
+    /* ---------- Growth ---------- */
   history: GrowthPoint[];
 
   /* ---------- Grouping ---------- */
@@ -75,7 +82,7 @@ export interface IUser extends Document {
 
 /* ===================== SCHEMA ===================== */
 
-const UserSchema = new Schema<IUser>(
+const UserSchema = new Schema(
   {
     handle: {
       type: String,

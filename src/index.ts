@@ -66,71 +66,7 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
   const { platform, username } = req.params;
 
   try {
-    // 1️⃣ Check DB
-    const existing = await User.findOne({
-      handle: username,
-      platform,
-    });
-
-    if (existing) {
-        const ex = existing as any;
-        return res.json({
-          platform: ex.platform,
-          handle: ex.handle,
-          rating: ex.rating,
-          maxRating: ex.maxRating,
-          rank: ex.rank,
-          maxRank: ex.maxRank,
-          totalSolved: ex.totalSolved || ex.problemsSolved || 0,
-          cpulseRating: ex.cpulseRating,
-          history: ex.history || [],
-
-          // Rich profile fields
-          avatar: ex.avatar,
-          title: ex.title,
-          contribution: ex.contribution,
-          friendOfCount: ex.friendOfCount,
-          organization: ex.organization,
-          lastOnlineTimeSeconds: ex.lastOnlineTimeSeconds,
-          contestRating: ex.contestRating,
-          globalRanking: ex.globalRanking,
-          topPercentage: ex.topPercentage,
-          reputation: ex.reputation,
-          division: ex.division,
-          country: ex.country,
-
-          // Enhanced fields
-          contestsAttended: ex.contestsAttended,
-          streak: ex.streak,
-          totalActiveDays: ex.totalActiveDays,
-          badges: ex.badges || [],
-          languages: ex.languages || [],
-          topTags: ex.topTags || [],
-          recentSubmissions: ex.recentSubmissions || [],
-          registrationTimeSeconds: ex.registrationTimeSeconds,
-          city: ex.city,
-
-    // LeetCode specific
-            easySolved: ex.easySolved,
-            mediumSolved: ex.mediumSolved,
-            hardSolved: ex.hardSolved,
-            totalSubmissions: ex.totalSubmissions,
-            aboutMe: ex.aboutMe || "",
-            skillTags: ex.skillTags || [],
-            realName: ex.realName || "",
-            company: ex.company || "",
-            school: ex.school || "",
-            websites: ex.websites || [],
-
-            // CodeChef specific
-            stars: ex.stars,
-            globalRank: ex.globalRank,
-            countryRank: ex.countryRank,
-            problemsSolved: ex.problemsSolved,
-          });
-        }
-
-    // 2️⃣ Fetch from platform
+    // Always fetch fresh data from the platform API to ensure enhanced fields are populated
     let normalizedData: Record<string, any>;
 
     if (platform === "codeforces") {

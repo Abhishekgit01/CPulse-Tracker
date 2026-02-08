@@ -3,8 +3,8 @@ import axios from "axios";
 export async function getLeetCodeUser(username: string) {
   try {
     const query = {
-      query: `
-        query getUserProfile($username: String!) {
+        query: `
+          query getUserProfile($username: String!) {
             matchedUser(username: $username) {
               username
               profile {
@@ -20,67 +20,48 @@ export async function getLeetCodeUser(username: string) {
                 websites
                 starRating
               }
-            badges {
-              name
-              icon
-            }
-            submitStats {
-              acSubmissionNum {
-                difficulty
-                count
+              badges {
+                name
+                icon
               }
-              totalSubmissionNum {
-                difficulty
-                count
+              submitStats {
+                acSubmissionNum { difficulty count }
+                totalSubmissionNum { difficulty count }
               }
-            }
-            tagProblemCounts {
-              advanced {
-                tagName
-                problemsSolved
+              tagProblemCounts {
+                advanced { tagName problemsSolved }
+                intermediate { tagName problemsSolved }
+                fundamental { tagName problemsSolved }
               }
-              intermediate {
-                tagName
-                problemsSolved
+              userCalendar {
+                streak
+                totalActiveDays
+                activeYears
               }
-              fundamental {
-                tagName
+              languageProblemCount {
+                languageName
                 problemsSolved
               }
             }
-            userCalendar {
-              streak
-              totalActiveDays
-              activeYears
-              submissionCalendar
-            }
-            languageProblemCount {
-              languageName
-              problemsSolved
-            }
-            recentSubmissionList(limit: 10) {
+            recentSubmissionList(username: $username, limit: 10) {
               title
               statusDisplay
               lang
               timestamp
             }
-          }
-          userContestRanking(username: $username) {
-            rating
-            globalRanking
-            topPercentage
-            attendedContestsCount
-          }
-          userContestRankingHistory(username: $username) {
-            contest {
-              title
-              startTime
+            userContestRanking(username: $username) {
+              rating
+              globalRanking
+              topPercentage
+              attendedContestsCount
             }
-            rating
-            ranking
+            userContestRankingHistory(username: $username) {
+              contest { title startTime }
+              rating
+              ranking
+            }
           }
-        }
-      `,
+        `,
       variables: {
         username,
       },
@@ -96,9 +77,10 @@ export async function getLeetCodeUser(username: string) {
       }
     );
 
-    const user = response.data?.data?.matchedUser;
-    const contest = response.data?.data?.userContestRanking;
-    const contestHistory = response.data?.data?.userContestRankingHistory || [];
+      const user = response.data?.data?.matchedUser;
+      const contest = response.data?.data?.userContestRanking;
+      const contestHistory = response.data?.data?.userContestRankingHistory || [];
+      const recentSubmissionListRaw = response.data?.data?.recentSubmissionList || [];
 
     if (!user) {
       throw new Error("LeetCode user not found");
@@ -136,8 +118,8 @@ export async function getLeetCodeUser(username: string) {
       .slice(0, 10)
       .map((t: any) => ({ tag: t.tagName, count: t.problemsSolved }));
 
-    // Parse recent submissions
-    const recentSubmissions = (user.recentSubmissionList || []).map((s: any) => ({
+    // Parse recent submissions (top-level query, not nested in matchedUser)
+      const recentSubmissions = recentSubmissionListRaw.map((s: any) => ({
       title: s.title,
       status: s.statusDisplay,
       language: s.lang,
