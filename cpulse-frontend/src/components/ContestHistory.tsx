@@ -52,7 +52,7 @@ const PLATFORM_CONFIG: Record<string, { name: string; color: string; chartColor:
 
 type SortKey = "date" | "rank" | "ratingChange" | "newRating";
 
-export default function ContestHistory() {
+export default function ContestHistory({ embedded = false }: { embedded?: boolean }) {
   const { platform: urlPlatform, handle: urlHandle } = useParams();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -176,17 +176,19 @@ export default function ContestHistory() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-extrabold text-white flex items-center gap-3">
-          <Trophy className="text-indigo-400" size={40} />
-          Contest History
-        </h1>
-        <p className="text-gray-400 mt-2">
-          Track your contest participation and rating progression across platforms
-        </p>
-      </div>
+    <div className={embedded ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
+      {/* Header - hidden when embedded in ContestCalendar */}
+      {!embedded && (
+        <div className="mb-8">
+          <h1 className="text-4xl font-extrabold text-white flex items-center gap-3">
+            <Trophy className="text-indigo-400" size={40} />
+            Contest History
+          </h1>
+          <p className="text-gray-400 mt-2">
+            Track your contest participation and rating progression across platforms
+          </p>
+        </div>
+      )}
 
       {/* Profile Quick Select + Search */}
       <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">

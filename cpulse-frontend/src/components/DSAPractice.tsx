@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
+import Editor from "@monaco-editor/react";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
@@ -11,7 +12,10 @@ interface Example {
 }
 
 interface DSAQuestion {
+  id: string;
   title: string;
+  platform: "LeetCode" | "Codeforces" | "CodeChef";
+  platformUrl: string;
   difficulty: "Easy" | "Medium" | "Hard";
   tags: string[];
   description: string;
@@ -23,10 +27,19 @@ interface DSAQuestion {
   fullExplanation: string;
   timeComplexity: string;
   spaceComplexity: string;
-  language: string;
+}
+
+interface RunResult {
+  output: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  compileOutput: string;
+  compileError: string;
 }
 
 type Phase = "setup" | "solving" | "review";
+type SolvingTab = "problem" | "code";
 
 const DIFF_COLOR: Record<string, string> = {
   Easy: "#22c55e",
@@ -48,7 +61,49 @@ const TOPICS = [
   "Sorting", "Bit Manipulation", "Math", "Trie", "Union Find",
 ];
 
-const LANGUAGES = ["C++", "Python", "Java", "JavaScript", "Go", "Rust"];
+const PLATFORM_COLORS: Record<string, string> = {
+  LeetCode: "#f89f1b",
+  Codeforces: "#1890ff",
+  CodeChef: "#5b4638",
+};
+
+const LANGUAGES = [
+  { id: "cpp", name: "C++", monacoId: "cpp" },
+  { id: "c", name: "C", monacoId: "c" },
+  { id: "python", name: "Python", monacoId: "python" },
+  { id: "java", name: "Java", monacoId: "java" },
+  { id: "javascript", name: "JavaScript", monacoId: "javascript" },
+];
+
+const DEFAULT_CODE: Record<string, string> = {
+  cpp: `#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    // Write your code here
+    
+    return 0;
+}`,
+  c: `#include <stdio.h>
+
+int main() {
+    // Write your code here
+    
+    return 0;
+}`,
+  python: `# Write your code here
+`,
+  java: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // Write your code here
+        
+    }
+}`,
+  javascript: `// Write your code here
+`,
+};
 
 /* ────────── helpers ────────── */
 function fmt(s: number) {
@@ -66,7 +121,6 @@ export default function DSAPractice() {
   /* setup state */
   const [difficulty, setDifficulty] = useState<string>("Medium");
   const [topic, setTopic] = useState<string>("");
-  const [language, setLanguage] = useState<string>("C++");
   const [customTime, setCustomTime] = useState<number>(0); // 0 = default
 
   /* question & phase */
@@ -74,6 +128,14 @@ export default function DSAPractice() {
   const [phase, setPhase] = useState<Phase>("setup");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  /* code editor */
+  const [solvingTab, setSolvingTab] = useState<SolvingTab>("problem");
+  const [lang, setLang] = useState("cpp");
+  const [code, setCode] = useState(DEFAULT_CODE["cpp"]);
+  const [stdin, setStdin] = useState("");
+  const [runOutput, setRunOutput] = useState("");
+  const [running, setRunning] = useState(false);
 
   /* timer */
   const [totalTime, setTotalTime] = useState(0);
@@ -137,10 +199,9 @@ export default function DSAPractice() {
     setError("");
     try {
       const res = await axios.post(`${API}/api/dsa-practice/generate`, {
-        difficulty,
-        topic: topic || undefined,
-        language,
-      });
+          difficulty,
+          topic: topic || undefined,
+        });
       setQuestion(res.data);
       const t = customTime > 0 ? customTime * 60 : TIMER_DEFAULTS[difficulty] || 25 * 60;
       setTotalTime(t);
@@ -161,7 +222,7 @@ export default function DSAPractice() {
     } finally {
       setLoading(false);
     }
-  }, [difficulty, topic, language, customTime]);
+  }, [difficulty, topic, customTime]);
 
   /* ── use hint (consumes time) ── */
   const useHint = (hintNum: 1 | 2) => {
@@ -215,7 +276,36 @@ export default function DSAPractice() {
     setHintsUsed(0);
     setShowExplanation(false);
     setAutoRevealed(new Set());
+    setSolvingTab("problem");
+    setCode(DEFAULT_CODE[lang]);
+    setStdin("");
+    setRunOutput("");
   };
+
+  /* ── run code ── */
+  const runCode = useCallback(async () => {
+    setRunning(true);
+    setRunOutput("");
+    try {
+      const res = await axios.post(`${API}/api/dsa-practice/run`, {
+        code,
+        language: lang,
+        stdin,
+      });
+      const d = res.data;
+      let output = "";
+      if (d.compileError) output += `[Compile Error]\n${d.compileError}\n`;
+      else if (d.compileOutput) output += `[Compile]\n${d.compileOutput}\n`;
+      if (d.stderr) output += `[Stderr]\n${d.stderr}\n`;
+      if (d.stdout) output += d.stdout;
+      else if (!d.stderr && !d.compileError) output += d.output || "(no output)";
+      setRunOutput(output.trim());
+    } catch (e: any) {
+      setRunOutput(e.response?.data?.error || e.message || "Execution failed");
+    } finally {
+      setRunning(false);
+    }
+  }, [code, lang, stdin]);
 
   /* ━━━━━━━━━━━━ RENDER ━━━━━━━━━━━━ */
 
@@ -269,27 +359,7 @@ export default function DSAPractice() {
             </select>
           </div>
 
-          {/* Language */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Solution Language</label>
-            <div className="flex flex-wrap gap-2">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLanguage(l)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                    language === l
-                      ? "border-indigo-500/40 bg-indigo-500/15 text-indigo-300"
-                      : "border-white/10 text-gray-400 hover:border-white/20"
-                  }`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Timer */}
+            {/* Timer */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Timer (minutes) — default: {TIMER_DEFAULTS[difficulty] / 60}m
@@ -312,13 +382,13 @@ export default function DSAPractice() {
             className="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-                Generating with AI...
-              </span>
-            ) : (
-              "Generate Problem & Start Timer"
-            )}
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+                  Loading Problem...
+                </span>
+              ) : (
+                "Start Practice"
+              )}
           </button>
 
           {error && (
@@ -330,8 +400,8 @@ export default function DSAPractice() {
           {/* Rules */}
           <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-2">
             <h3 className="text-sm font-semibold text-gray-300">How it works</h3>
-            <ul className="text-xs text-gray-500 space-y-1.5 list-disc list-inside">
-              <li>An AI generates a unique DSA problem with a 3-part solution</li>
+              <ul className="text-xs text-gray-500 space-y-1.5 list-disc list-inside">
+                <li>Questions are sourced from <strong className="text-indigo-400">LeetCode</strong>, <strong className="text-blue-400">Codeforces</strong>, and <strong className="text-amber-400">CodeChef</strong></li>
               <li>At <strong className="text-amber-400">50% time elapsed</strong>, the first 1/3 of the solution is auto-revealed</li>
               <li>At <strong className="text-orange-400">75% time elapsed</strong>, the second 1/3 is auto-revealed</li>
               <li>At <strong className="text-red-400">100% time elapsed</strong>, the full solution is shown</li>
@@ -362,21 +432,30 @@ export default function DSAPractice() {
     <div className="max-w-5xl mx-auto py-6 space-y-5">
       {/* ── TOP BAR: Timer + Controls ── */}
       <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-gray-100">{question.title}</h2>
-            <span
-              className="px-2 py-0.5 rounded text-xs font-bold"
-              style={{ color: DIFF_COLOR[question.difficulty], backgroundColor: DIFF_COLOR[question.difficulty] + "20" }}
-            >
-              {question.difficulty}
-            </span>
-            {question.tags.map((tag) => (
-              <span key={tag} className="px-2 py-0.5 rounded text-xs bg-white/[0.05] text-gray-400 border border-white/[0.06]">
-                {tag}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-lg font-bold text-gray-100">{question.title}</h2>
+              <a
+                href={question.platformUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-0.5 rounded text-xs font-bold hover:opacity-80 transition-opacity"
+                style={{ color: PLATFORM_COLORS[question.platform] || "#fff", backgroundColor: (PLATFORM_COLORS[question.platform] || "#fff") + "20" }}
+              >
+                {question.platform}
+              </a>
+              <span
+                className="px-2 py-0.5 rounded text-xs font-bold"
+                style={{ color: DIFF_COLOR[question.difficulty], backgroundColor: DIFF_COLOR[question.difficulty] + "20" }}
+              >
+                {question.difficulty}
               </span>
-            ))}
-          </div>
+              {question.tags.map((tag) => (
+                <span key={tag} className="px-2 py-0.5 rounded text-xs bg-white/[0.05] text-gray-400 border border-white/[0.06]">
+                  {tag}
+                </span>
+              ))}
+            </div>
           <div className="flex items-center gap-2">
             {phase === "solving" && (
               <>
@@ -434,12 +513,41 @@ export default function DSAPractice() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        {/* ── LEFT: Problem Statement ── */}
+      {/* ── Tab switcher: Problem / Code ── */}
+    <div className="flex gap-2">
+      {(["problem", "code"] as SolvingTab[]).map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setSolvingTab(tab)}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${
+            solvingTab === tab
+              ? "bg-indigo-500/15 text-indigo-300 border-indigo-500/20"
+              : "border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-200"
+          }`}
+        >
+          {tab === "problem" ? "Problem" : "Code Editor"}
+        </button>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        {/* ── LEFT: Problem Statement OR Code Editor ── */}
         <div className="lg:col-span-3 space-y-4">
-          {/* Description */}
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">Problem Statement</h3>
+
+          {/* Problem tab */}
+          {solvingTab === "problem" && (
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-300">Problem Statement</h3>
+                <a
+                  href={question.platformUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1 rounded-lg text-xs font-medium border border-white/10 text-gray-300 hover:bg-white/[0.05] transition-all"
+                >
+                  Solve on {question.platform} &rarr;
+                </a>
+              </div>
             <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{question.description}</p>
 
             {/* Examples */}
@@ -470,6 +578,87 @@ export default function DSAPractice() {
               </div>
             )}
           </div>
+          )}
+
+          {/* Code Editor tab */}
+          {solvingTab === "code" && (
+            <div className="space-y-3">
+              {/* Language selector + Run button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <select
+                    value={lang}
+                    onChange={(e) => {
+                      const newLang = e.target.value;
+                      setLang(newLang);
+                      setCode(DEFAULT_CODE[newLang]);
+                    }}
+                    className="bg-white/[0.04] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50"
+                  >
+                    {LANGUAGES.map((l) => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={runCode}
+                  disabled={running}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {running ? (
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  )}
+                  {running ? "Running..." : "Run Code"}
+                </button>
+              </div>
+
+              {/* Monaco Editor */}
+              <div className="rounded-xl overflow-hidden border border-white/[0.06]">
+                <Editor
+                  height="400px"
+                  language={LANGUAGES.find((l) => l.id === lang)?.monacoId || "cpp"}
+                  value={code}
+                  onChange={(val) => setCode(val || "")}
+                  theme="vs-dark"
+                  options={{
+                    fontSize: 14,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    padding: { top: 12 },
+                    lineNumbers: "on",
+                    renderLineHighlight: "line",
+                    wordWrap: "on",
+                  }}
+                />
+              </div>
+
+              {/* Stdin */}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Input (stdin)</label>
+                <textarea
+                  value={stdin}
+                  onChange={(e) => setStdin(e.target.value)}
+                  placeholder="Enter test input here..."
+                  rows={3}
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono focus:outline-none focus:border-indigo-500/50 resize-y"
+                />
+              </div>
+
+              {/* Output */}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Output</label>
+                <pre className={`w-full min-h-[60px] max-h-[200px] overflow-auto bg-black/40 border rounded-lg px-3 py-2 text-sm font-mono whitespace-pre-wrap ${
+                  runOutput.includes("[Compile Error]") || runOutput.includes("[Stderr]")
+                    ? "border-red-500/20 text-red-300"
+                    : "border-white/[0.06] text-green-300"
+                }`}>
+                  {runOutput || <span className="text-gray-600">Run your code to see output...</span>}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── RIGHT: Hints + Solution Panels ── */}
@@ -518,7 +707,7 @@ export default function DSAPractice() {
           {/* Solution Reveal */}
           <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-300">Solution ({question.language})</h3>
+              <h3 className="text-sm font-semibold text-gray-300">Solution (C++)</h3>
               <div className="flex items-center gap-1">
                 {[1, 2, 3].map((n) => (
                   <div

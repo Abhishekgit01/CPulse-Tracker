@@ -31,7 +31,6 @@ const NAV_LINKS = [
   { to: "/compare", label: "Compare" },
   { to: "/problem-of-day", label: "Daily" },
   { to: "/contests", label: "Contests" },
-  { to: "/contest-history", label: "History" },
   { to: "/companies", label: "Companies" },
   { to: "/dsa-practice", label: "Practice" },
 ];
@@ -315,8 +314,8 @@ export default function App() {
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
             <Route path="/contests" element={<ContestCalendar />} />
-            <Route path="/contest-history" element={<ContestHistory />} />
-            <Route path="/contest-history/:platform/:handle" element={<ContestHistory />} />
+              <Route path="/contest-history" element={<Navigate to="/contests" />} />
+              <Route path="/contest-history/:platform/:handle" element={<ContestHistory />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/companies/:slug" element={<CompanyDetails />} />
             <Route path="/dsa-practice" element={<DSAPractice />} />

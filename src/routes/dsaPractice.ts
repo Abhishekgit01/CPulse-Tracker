@@ -1,39 +1,18 @@
 import { Router } from "express";
 import axios from "axios";
+import questions, { DSAQuestion } from "../data/dsaQuestions";
+
+const PISTON_URL = "https://emkc.org/api/v2/piston";
+
+const LANG_MAP: Record<string, { language: string; version: string }> = {
+  "cpp": { language: "c++", version: "10.2.0" },
+  "c": { language: "c", version: "10.2.0" },
+  "python": { language: "python", version: "3.10.0" },
+  "java": { language: "java", version: "15.0.2" },
+  "javascript": { language: "javascript", version: "18.15.0" },
+};
 
 const router = Router();
-
-async function geminiWithRetry(url: string, body: any, maxRetries = 3): Promise<any> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await axios.post(url, body, { timeout: 30000 });
-    } catch (err: any) {
-      if (err.response?.status === 429 && attempt < maxRetries - 1) {
-        const delay = (attempt + 1) * 3000;
-        console.log(`[DSA Practice] Gemini 429, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
-        await new Promise(r => setTimeout(r, delay));
-        continue;
-      }
-      throw err;
-    }
-  }
-}
-
-interface DSAQuestion {
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  tags: string[];
-  description: string;
-  examples: { input: string; output: string; explanation?: string }[];
-  constraints: string[];
-  hint1: string;
-  hint2: string;
-  solutionParts: [string, string, string]; // 3 parts of the solution
-  fullExplanation: string;
-  timeComplexity: string;
-  spaceComplexity: string;
-  language: string;
-}
 
 const TOPICS = [
   "Arrays", "Strings", "Hash Table", "Two Pointers", "Sliding Window",
@@ -45,105 +24,124 @@ const TOPICS = [
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
+// Track recently served question ids per session to avoid repeats
+const recentlyServed: string[] = [];
+const MAX_RECENT = 10;
+
 // POST /api/dsa-practice/generate
-router.post("/generate", async (req, res) => {
+router.post("/generate", (req, res) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "Server missing GEMINI_API_KEY" });
+    const { difficulty, topic } = req.body || {};
+
+    // Filter by difficulty
+    let pool: DSAQuestion[] = questions;
+    if (difficulty && DIFFICULTIES.includes(difficulty)) {
+      pool = pool.filter((q) => q.difficulty === difficulty);
     }
 
-    const { difficulty, topic, language } = req.body;
-    const diff = DIFFICULTIES.includes(difficulty) ? difficulty : "Medium";
-    const lang = language || "C++";
-    const topicHint = topic && TOPICS.includes(topic) ? topic : TOPICS[Math.floor(Math.random() * TOPICS.length)];
-
-    const prompt = `You are a DSA question generator. Generate ONE unique competitive programming / DSA interview question.
-
-Requirements:
-- Difficulty: ${diff}
-- Primary topic: ${topicHint}
-- Solution language: ${lang}
-
-Return ONLY valid JSON (no markdown fences, no extra text) with this exact structure:
-{
-  "title": "Problem Title",
-  "difficulty": "${diff}",
-  "tags": ["${topicHint}", ...other relevant tags],
-  "description": "Full problem statement in plain text. Be detailed and clear.",
-  "examples": [
-    {"input": "nums = [2,7,11,15], target = 9", "output": "[0,1]", "explanation": "Because nums[0] + nums[1] == 9"},
-    {"input": "...", "output": "..."}
-  ],
-  "constraints": ["1 <= nums.length <= 10^4", "..."],
-  "hint1": "A small nudge hint (e.g. 'Think about using a hash map to store seen values')",
-  "hint2": "A bigger hint that reveals the approach but not the code (e.g. 'Iterate through the array, for each element check if target - element exists in the hash map')",
-  "solutionParts": [
-    "// Part 1: Setup and data structures\\n<first ~1/3 of the solution code>",
-    "// Part 2: Core logic\\n<middle ~1/3 of the solution code>",
-    "// Part 3: Final processing and return\\n<last ~1/3 of the solution code>"
-  ],
-  "fullExplanation": "Detailed explanation of the approach, why it works, and step-by-step walkthrough.",
-  "timeComplexity": "O(n)",
-  "spaceComplexity": "O(n)",
-  "language": "${lang}"
-}
-
-IMPORTANT:
-- The 3 solutionParts must be a COMPLETE, WORKING solution when concatenated together. Each part should be roughly equal in size.
-- Part 1 should include includes/imports, function signature, and initial setup.
-- Part 2 should include the core algorithm logic.
-- Part 3 should include final computation and return statement, plus closing braces.
-- Make the problem unique and interesting, not a direct copy of a well-known problem. Put your own creative spin.
-- Escape all special characters properly for valid JSON.`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-      const response = await geminiWithRetry(url, {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.9,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 4096,
-        },
-      });
-
-      const text = response?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      throw new Error("Empty response from AI");
+    // Filter by topic
+    if (topic && TOPICS.includes(topic)) {
+      pool = pool.filter((q) => q.tags.includes(topic));
     }
 
-    // Parse JSON - strip markdown fences if present
-    const cleaned = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-    const question: DSAQuestion = JSON.parse(cleaned);
+    // If no matches after filtering, relax to just difficulty
+    if (pool.length === 0 && difficulty) {
+      pool = questions.filter((q) => q.difficulty === difficulty);
+    }
 
-    // Validate structure
-    if (
-      !question.title ||
-      !question.description ||
-      !Array.isArray(question.solutionParts) ||
-      question.solutionParts.length !== 3
-    ) {
-      throw new Error("Invalid question structure from AI");
+    // Still nothing? use all questions
+    if (pool.length === 0) {
+      pool = questions;
+    }
+
+    // Prefer questions not recently served
+    let candidates = pool.filter((q) => !recentlyServed.includes(q.id));
+    if (candidates.length === 0) {
+      candidates = pool;
+      recentlyServed.length = 0; // reset
+    }
+
+    // Pick random
+    const question = candidates[Math.floor(Math.random() * candidates.length)];
+
+    // Track as recently served
+    recentlyServed.push(question.id);
+    if (recentlyServed.length > MAX_RECENT) {
+      recentlyServed.shift();
     }
 
     res.json(question);
-    } catch (err: any) {
-      console.error("[DSA Practice] Error:", err.message);
-      const is429 = err.response?.status === 429;
-      res.status(is429 ? 429 : 500).json({
-        error: is429
-          ? "AI rate limit reached. Please wait a moment and try again."
-          : "Failed to generate question",
-        details: err.message,
-      });
-    }
+  } catch (err: any) {
+    console.error("[DSA Practice] Error:", err.message);
+    res.status(500).json({ error: "Failed to get question" });
+  }
 });
 
 // GET /api/dsa-practice/topics
 router.get("/topics", (_req, res) => {
   res.json({ topics: TOPICS, difficulties: DIFFICULTIES });
+});
+
+// GET /api/dsa-practice/count — helpful for the frontend to show total questions
+router.get("/count", (_req, res) => {
+  const byDifficulty = {
+    Easy: questions.filter((q) => q.difficulty === "Easy").length,
+    Medium: questions.filter((q) => q.difficulty === "Medium").length,
+    Hard: questions.filter((q) => q.difficulty === "Hard").length,
+  };
+  res.json({ total: questions.length, byDifficulty });
+});
+
+// POST /api/dsa-practice/run — execute code via Piston API
+router.post("/run", async (req, res) => {
+  try {
+    const { code, language, stdin } = req.body || {};
+    if (!code || !language) {
+      return res.status(400).json({ error: "code and language are required" });
+    }
+
+    const langConfig = LANG_MAP[language];
+    if (!langConfig) {
+      return res.status(400).json({ error: `Unsupported language: ${language}. Supported: ${Object.keys(LANG_MAP).join(", ")}` });
+    }
+
+    const response = await axios.post(`${PISTON_URL}/execute`, {
+      language: langConfig.language,
+      version: langConfig.version,
+      files: [{ content: code }],
+      stdin: stdin || "",
+      compile_timeout: 10000,
+      run_timeout: 5000,
+    }, { timeout: 15000 });
+
+    const { run, compile } = response.data;
+
+    res.json({
+      output: run?.output || "",
+      stdout: run?.stdout || "",
+      stderr: run?.stderr || "",
+      exitCode: run?.code ?? -1,
+      signal: run?.signal || null,
+      compileOutput: compile?.output || "",
+      compileError: compile?.stderr || "",
+    });
+  } catch (err: any) {
+    console.error("[DSA Practice] Run error:", err.message);
+    if (err.response?.status === 429) {
+      return res.status(429).json({ error: "Rate limit reached. Please wait a moment and try again." });
+    }
+    res.status(500).json({ error: "Code execution failed. Please try again." });
+  }
+});
+
+// GET /api/dsa-practice/languages — list supported languages
+router.get("/languages", (_req, res) => {
+  const langs = Object.entries(LANG_MAP).map(([key, val]) => ({
+    id: key,
+    name: key === "cpp" ? "C++" : key === "c" ? "C" : key === "javascript" ? "JavaScript" : key.charAt(0).toUpperCase() + key.slice(1),
+    version: val.version,
+  }));
+  res.json(langs);
 });
 
 export default router;
