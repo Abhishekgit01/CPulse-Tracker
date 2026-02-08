@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Clock, Users, ExternalLink, Trophy } from "lucide-react";
+import { Calendar, Clock, Users, ExternalLink, Trophy, Bookmark } from "lucide-react";
 
 interface ContestCardProps {
     contest: {
@@ -13,6 +13,9 @@ interface ContestCardProps {
         type?: string;
         participants?: number;
     };
+    isSaved?: boolean;
+    onToggleSave?: (contest: ContestCardProps["contest"]) => void;
+    showBookmark?: boolean;
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -29,7 +32,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
     atcoder: "🟣",
 };
 
-export default function ContestCard({ contest }: ContestCardProps) {
+export default function ContestCard({ contest, isSaved, onToggleSave, showBookmark }: ContestCardProps) {
     const startTime = new Date(contest.startTime);
     const now = new Date();
     const isUpcoming = startTime > now;
@@ -62,6 +65,22 @@ export default function ContestCard({ contest }: ContestCardProps) {
                     <span className="text-xs bg-white/20 px-3 py-1 rounded-full">
                         {contest.type}
                     </span>
+                )}
+                {showBookmark && onToggleSave && (
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onToggleSave(contest);
+                        }}
+                        className={`p-1.5 rounded-lg transition-all ${
+                            isSaved
+                                ? "bg-white/20 text-white"
+                                : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
+                        }`}
+                        title={isSaved ? "Remove from saved" : "Save contest"}
+                    >
+                        <Bookmark size={16} fill={isSaved ? "currentColor" : "none"} />
+                    </button>
                 )}
             </div>
 

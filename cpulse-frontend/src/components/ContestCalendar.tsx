@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import ContestCard from "./ContestCard";
-import { Calendar, Filter, RefreshCw, TrendingUp } from "lucide-react";
+import { Calendar, Filter, RefreshCw, TrendingUp, Bookmark } from "lucide-react";
 
 interface Contest {
     _id: string;
@@ -22,6 +23,9 @@ export default function ContestCalendar() {
     const [error, setError] = useState("");
     const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
     const [refreshing, setRefreshing] = useState(false);
+    const [savedContestIds, setSavedContestIds] = useState<Set<string>>(new Set());
+    const [showSavedOnly, setShowSavedOnly] = useState(false);
+    const { token } = useAuth();
 
     const fetchContests = async () => {
         try {
@@ -55,18 +59,68 @@ export default function ContestCalendar() {
         }
     };
 
+    const fetchSavedContests = async () => {
+        if (!token) return;
+        try {
+            const res = await api.get("/api/contests/saved");
+            if (res.data.success) {
+                const ids = new Set<string>(res.data.contests.map((c: any) => c.contestId));
+                setSavedContestIds(ids);
+            }
+        } catch {
+            // User may not be logged in
+        }
+    };
+
+    const handleToggleSave = async (contest: Contest) => {
+        if (!token) return;
+        const contestId = contest._id;
+        if (savedContestIds.has(contestId)) {
+            // Unsave
+            try {
+                await api.delete(`/api/contests/saved/${contestId}`);
+                setSavedContestIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(contestId);
+                    return next;
+                });
+            } catch (err) {
+                console.error("Error removing saved contest:", err);
+            }
+        } else {
+            // Save
+            try {
+                await api.post("/api/contests/saved", {
+                    contestId: contest._id,
+                    platform: contest.platform,
+                    name: contest.name,
+                    startTime: contest.startTime,
+                    duration: contest.duration,
+                    url: contest.url,
+                });
+                setSavedContestIds((prev) => new Set(prev).add(contestId));
+            } catch (err) {
+                console.error("Error saving contest:", err);
+            }
+        }
+    };
+
     useEffect(() => {
         fetchContests();
-    }, []);
+        fetchSavedContests();
+    }, []); // eslint-disable-line
 
-    // Filter contests when platform changes
+    // Filter contests when platform or saved filter changes
     useEffect(() => {
-        if (selectedPlatform === "all") {
-            setFilteredContests(contests);
-        } else {
-            setFilteredContests(contests.filter((c) => c.platform === selectedPlatform));
+        let filtered = contests;
+        if (selectedPlatform !== "all") {
+            filtered = filtered.filter((c) => c.platform === selectedPlatform);
         }
-    }, [selectedPlatform, contests]);
+        if (showSavedOnly) {
+            filtered = filtered.filter((c) => savedContestIds.has(c._id));
+        }
+        setFilteredContests(filtered);
+    }, [selectedPlatform, contests, showSavedOnly, savedContestIds]);
 
     // Group contests by date
     const groupedContests = filteredContests.reduce((acc, contest) => {
@@ -174,6 +228,22 @@ export default function ContestCalendar() {
                             )}
                         </button>
                     ))}
+                    {token && (
+                        <button
+                            onClick={() => setShowSavedOnly(!showSavedOnly)}
+                            className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+                                showSavedOnly
+                                    ? "bg-amber-600 text-white shadow-md"
+                                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                            }`}
+                        >
+                            <Bookmark size={16} fill={showSavedOnly ? "currentColor" : "none"} />
+                            My Saved
+                            {savedContestIds.size > 0 && (
+                                <span className="text-xs opacity-70">({savedContestIds.size})</span>
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -205,7 +275,13 @@ export default function ContestCalendar() {
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {dateContests.map((contest) => (
-                                    <ContestCard key={contest._id} contest={contest} />
+                                    <ContestCard
+                                        key={contest._id}
+                                        contest={contest}
+                                        isSaved={savedContestIds.has(contest._id)}
+                                        onToggleSave={handleToggleSave}
+                                        showBookmark={!!token}
+                                    />
                                 ))}
                             </div>
                         </div>
