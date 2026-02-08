@@ -80,9 +80,11 @@ export default function ContestCalendar() {
   const [hackLoading, setHackLoading] = useState(false);
   const [hackError, setHackError] = useState("");
   const [hackFilter, setHackFilter] = useState<string>("all"); // all, devfolio, mlh, devpost
+  const [locationFilter, setLocationFilter] = useState<string>("all");
 
   // Bookmarking state
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [savedHackIds, setSavedHackIds] = useState<Set<string>>(new Set());
 
   /* ---------- Fetch contests ---------- */
   const fetchContests = async () => {
@@ -146,11 +148,13 @@ export default function ContestCalendar() {
   };
 
   /* ---------- Fetch hackathons ---------- */
-  const fetchHackathons = async () => {
+  const fetchHackathons = useCallback(async () => {
     try {
       setHackLoading(true);
       setHackError("");
-      const res = await api.get<{ success: boolean; hackathons: Hackathon[] }>("/api/hackathons");
+      const params: any = {};
+      if (locationFilter && locationFilter !== "all") params.location = locationFilter;
+      const res = await api.get<{ success: boolean; hackathons: Hackathon[] }>("/api/hackathons", { params });
       if (res.data.success) {
         setHackathons(res.data.hackathons);
       }
@@ -159,6 +163,45 @@ export default function ContestCalendar() {
       setHackError("Failed to load hackathons.");
     } finally {
       setHackLoading(false);
+    }
+  }, [locationFilter]);
+
+  /* ---------- Fetch saved hackathons ---------- */
+  const fetchSavedHackathons = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await api.get<{ success: boolean; hackathons: any[] }>("/api/hackathons/saved");
+      if (res.data.success) {
+        setSavedHackIds(new Set(res.data.hackathons.map((h: any) => h.hackathonId)));
+      }
+    } catch {}
+  }, [token]);
+
+  /* ---------- Toggle hackathon bookmark ---------- */
+  const toggleSaveHackathon = async (hack: Hackathon) => {
+    if (!token) return;
+    if (savedHackIds.has(hack.id)) {
+      try {
+        await api.delete(`/api/hackathons/saved/${hack.id}`);
+        setSavedHackIds((prev) => {
+          const next = new Set(prev);
+          next.delete(hack.id);
+          return next;
+        });
+      } catch {}
+    } else {
+      try {
+        await api.post("/api/hackathons/saved", {
+          hackathonId: hack.id,
+          source: hack.source,
+          name: hack.name,
+          url: hack.url,
+          startDate: hack.startDate,
+          endDate: hack.endDate,
+          location: hack.location,
+        });
+        setSavedHackIds((prev) => new Set(prev).add(hack.id));
+      } catch {}
     }
   };
 
@@ -182,13 +225,14 @@ export default function ContestCalendar() {
   useEffect(() => {
     fetchContests();
     fetchSaved();
-  }, [fetchSaved]);
+    fetchSavedHackathons();
+  }, [fetchSaved, fetchSavedHackathons]);
 
   useEffect(() => {
-    if (activeTab === "hackathons" && hackathons.length === 0 && !hackLoading) {
+    if (activeTab === "hackathons") {
       fetchHackathons();
     }
-  }, [activeTab]); // eslint-disable-line
+  }, [activeTab, fetchHackathons]);
 
   // Filter contests
   useEffect(() => {
@@ -399,35 +443,55 @@ export default function ContestCalendar() {
         </>
       )}
 
-      {/* =================== HACKATHONS TAB =================== */}
-      {activeTab === "hackathons" && (
-        <>
-          {/* Source Filter */}
-          <div className="mb-6 flex items-center gap-3">
-            <Filter size={20} className="text-gray-500" />
-            <div className="flex flex-wrap gap-2">
-              {["all", "devfolio", "mlh", "devpost"].map((source) => (
-                <button
-                  key={source}
-                  onClick={() => setHackFilter(source)}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    hackFilter === source
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
-                  }`}
-                >
-                  {source === "all"
-                    ? "All Sources"
-                    : source.charAt(0).toUpperCase() + source.slice(1)}
-                  {source !== "all" && (
-                    <span className="ml-2 text-xs opacity-70">
-                      ({hackathons.filter((h) => h.source === source).length})
-                    </span>
-                  )}
-                </button>
-              ))}
+        {/* =================== HACKATHONS TAB =================== */}
+        {activeTab === "hackathons" && (
+          <>
+            {/* Source Filter */}
+            <div className="mb-4 flex items-center gap-3">
+              <Filter size={20} className="text-gray-500" />
+              <div className="flex flex-wrap gap-2">
+                {["all", "devfolio", "mlh", "devpost"].map((source) => (
+                  <button
+                    key={source}
+                    onClick={() => setHackFilter(source)}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      hackFilter === source
+                        ? "bg-indigo-600 text-white shadow-md"
+                        : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
+                    }`}
+                  >
+                    {source === "all"
+                      ? "All Sources"
+                      : source.charAt(0).toUpperCase() + source.slice(1)}
+                    {source !== "all" && (
+                      <span className="ml-2 text-xs opacity-70">
+                        ({hackathons.filter((h) => h.source === source).length})
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Location Filter */}
+            <div className="mb-6 flex items-center gap-3">
+              <MapPin size={20} className="text-gray-500" />
+              <div className="flex flex-wrap gap-2">
+                {["all", "bengaluru", "delhi", "mumbai", "hyderabad", "chennai"].map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => setLocationFilter(loc)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      locationFilter === loc
+                        ? "bg-purple-600 text-white shadow-md"
+                        : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
+                    }`}
+                  >
+                    {loc === "all" ? "All Locations" : loc.charAt(0).toUpperCase() + loc.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
 
           {hackLoading && (
             <div className="flex justify-center items-center py-20">
@@ -449,13 +513,19 @@ export default function ContestCalendar() {
             </div>
           )}
 
-          {!hackLoading && filteredHackathons.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredHackathons.map((hack) => (
-                <HackathonCard key={hack.id} hackathon={hack} />
-              ))}
-            </div>
-          )}
+            {!hackLoading && filteredHackathons.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredHackathons.map((hack) => (
+                  <HackathonCard
+                    key={hack.id}
+                    hackathon={hack}
+                    isSaved={savedHackIds.has(hack.id)}
+                    onToggleSave={token ? toggleSaveHackathon : undefined}
+                    showBookmark={!!token}
+                  />
+                ))}
+              </div>
+            )}
         </>
       )}
 
@@ -466,7 +536,17 @@ export default function ContestCalendar() {
 }
 
 /* =================== Hackathon Card =================== */
-function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
+function HackathonCard({
+  hackathon,
+  isSaved,
+  onToggleSave,
+  showBookmark,
+}: {
+  hackathon: Hackathon;
+  isSaved?: boolean;
+  onToggleSave?: (hack: Hackathon) => void;
+  showBookmark?: boolean;
+}) {
   const sc = SOURCE_COLORS[hackathon.source] || SOURCE_COLORS.devfolio;
   const mode = MODE_BADGE[hackathon.mode] || MODE_BADGE.online;
 
@@ -578,16 +658,31 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
         )}
 
         {/* Action */}
-        <a
-          href={hackathon.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm"
-        >
-          <Rocket size={16} />
-          <span>{isLive ? "Join Now" : "Learn More"}</span>
-          <ExternalLink size={14} />
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={hackathon.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm"
+          >
+            <Rocket size={16} />
+            <span>{isLive ? "Join Now" : "Learn More"}</span>
+            <ExternalLink size={14} />
+          </a>
+          {showBookmark && onToggleSave && (
+            <button
+              onClick={() => onToggleSave(hackathon)}
+              className={`px-3 py-2.5 rounded-xl border transition-all ${
+                isSaved
+                  ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-400"
+                  : "bg-gray-800/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+              }`}
+              title={isSaved ? "Remove bookmark" : "Bookmark"}
+            >
+              <Bookmark size={16} className={isSaved ? "fill-current" : ""} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

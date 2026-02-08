@@ -1,4 +1,5 @@
 import axios from "axios";
+const cheerio = require("cheerio");
 
 export interface Hackathon {
   id: string;
@@ -172,7 +173,7 @@ async function fetchMLH(): Promise<Hackathon[]> {
 
     const $ = cheerio.load(res.data);
 
-    $(".event-wrapper .card").each((_i, el) => {
+    $(".event-wrapper .card").each((_i: number, el: any) => {
       const name = $(el).find(".event-name, h3").text().trim();
       const dateText = $(el).find(".event-date, .date").text().trim();
       const locationText = $(el).find(".event-location, .location").text().trim();
