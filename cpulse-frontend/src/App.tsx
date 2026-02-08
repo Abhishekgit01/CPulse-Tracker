@@ -20,6 +20,9 @@ import ContestCalendar from "./components/ContestCalendar";
 import Companies from "./components/Companies";
 import CompanyDetails from "./components/CompanyDetails";
 import DSAPractice from "./components/DSAPractice";
+import Community from "./components/Community";
+import PostDetail from "./components/PostDetail";
+import PublicProfile from "./components/PublicProfile";
 import { SparklesCore } from "./components/ui/sparkles";
 
 const NAV_LINKS = [
@@ -31,6 +34,7 @@ const NAV_LINKS = [
   { to: "/practice", label: "Practice" },
   { to: "/problem-of-day", label: "Daily" },
   { to: "/contests", label: "Events" },
+  { to: "/community", label: "Community" },
   { to: "/companies", label: "Companies" },
 ];
 
@@ -200,10 +204,10 @@ export default function App() {
                   <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Login</span>
                 </Link>
               ) : (
-                <div className="hidden sm:flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                    {(user?.displayName || user?.email || "U")[0].toUpperCase()}
-                  </div>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Link to={`/profile/${user?.id}`} className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold hover:ring-2 hover:ring-indigo-400/50 transition">
+                      {(user?.displayName || user?.email || "U")[0].toUpperCase()}
+                    </Link>
                   <button
                     onClick={logout}
                     className="text-xs text-red-400/80 hover:text-red-400 px-2.5 py-1.5 rounded-lg bg-red-500/[0.06] border border-red-500/10 hover:border-red-500/20 transition-all"
@@ -312,8 +316,11 @@ export default function App() {
           <Route path="/codechef/:username" element={<EnhancedCodeChefStats />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
-          <Route path="/contests" element={<ContestCalendar />} />
-            <Route path="/companies" element={<Companies />} />
+            <Route path="/contests" element={<ContestCalendar />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/community/:id" element={<PostDetail />} />
+              <Route path="/profile/:userId" element={<PublicProfile />} />
+              <Route path="/companies" element={<Companies />} />
             <Route path="/companies/:slug" element={<CompanyDetails />} />
             <Route path="/practice" element={<DSAPractice />} />
             <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />

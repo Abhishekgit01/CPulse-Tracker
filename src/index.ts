@@ -31,6 +31,8 @@ import dsaPracticeRoutes from "./routes/dsaPractice";
 import contestHistoryRoutes from "./routes/contestHistory";
 import savedContestRoutes from "./routes/savedContests";
 import hackathonRoutes from "./routes/hackathons";
+import postRoutes from "./routes/posts";
+import profileRoutes from "./routes/profiles";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -67,6 +69,8 @@ app.use("/api/dsa-practice", dsaPracticeRoutes);
 app.use("/api/contest-history", contestHistoryRoutes);
 app.use("/api/contests/saved", savedContestRoutes);
 app.use("/api/hackathons", hackathonRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/profiles", profileRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers

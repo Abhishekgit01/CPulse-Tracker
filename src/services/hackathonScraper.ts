@@ -1,5 +1,4 @@
 import axios from "axios";
-import * as cheerio from "cheerio";
 
 export interface Hackathon {
   id: string;
@@ -87,53 +86,70 @@ function parseDateRange(text: string, defaultYear: number): { start: string; end
 /* ===================== DEVFOLIO ===================== */
 async function fetchDevfolio(): Promise<Hackathon[]> {
   try {
-    const res = await axios.get("https://devfolio.co/hackathons/open", {
-      headers: { "User-Agent": UA },
-      timeout: 15000,
-    });
+    const graphqlQuery = `
+      query SearchHackathons($status: [String!], $themes: [String!], $type: [String!], $search: String) {
+        hackathons(status: $status, themes: $themes, type: $type, search: $search) {
+          id name slug status start_date end_date
+          location is_online banner_url participating_count
+          hashtags { name }
+        }
+      }
+    `;
 
-    const $ = cheerio.load(res.data);
+    const res = await axios.post(
+      "https://api.devfolio.co/graphql",
+      {
+        operationName: "SearchHackathons",
+        query: graphqlQuery,
+        variables: {
+          status: ["open", "upcoming"],
+          themes: [],
+          type: [],
+          search: "",
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://devfolio.co",
+          Referer: "https://devfolio.co/explore",
+          "User-Agent": UA,
+        },
+        timeout: 15000,
+      }
+    );
+
+    const items = res.data?.data?.hackathons || [];
     const hackathons: Hackathon[] = [];
 
-    const nextDataScript = $("script#__NEXT_DATA__").html();
-    if (nextDataScript) {
-      try {
-        const nextData = JSON.parse(nextDataScript);
-        const items =
-          nextData?.props?.pageProps?.hackathons ||
-          nextData?.props?.pageProps?.results?.nodes ||
-          nextData?.props?.pageProps?.results ||
-          [];
+    for (const s of items) {
+      const isOnline = s.is_online !== false;
+      const startDate = s.start_date || "";
+      const endDate = s.end_date || "";
+      const now = new Date();
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      let status: Hackathon["status"] = "upcoming";
+      if (!isNaN(end.getTime()) && now > end) status = "ended";
+      else if (!isNaN(start.getTime()) && now >= start) status = "open";
 
-        for (const s of Array.isArray(items) ? items : []) {
-          const isOnline = s.is_online !== false;
-          const startDate = s.start_date || s.starts_at || "";
-          const endDate = s.end_date || s.ends_at || "";
-          const now = new Date();
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-          let status: Hackathon["status"] = "upcoming";
-          if (!isNaN(end.getTime()) && now > end) status = "ended";
-          else if (!isNaN(start.getTime()) && now >= start) status = "open";
-
-          hackathons.push({
-            id: `devfolio-${s.slug || s.id}`,
-            name: s.name || "Unknown Hackathon",
-            tagline: s.tagline || "",
-            url: `https://devfolio.co/hackathons/${s.slug}`,
-            source: "devfolio" as const,
-            startDate,
-            endDate,
-            location: s.location || (isOnline ? "Online" : "TBD"),
-            mode: isOnline ? "online" : "in-person",
-            logo: s.logo || "",
-            themes: Array.isArray(s.themes)
-              ? s.themes.map((t: any) => (typeof t === "string" ? t : t.name || ""))
-              : [],
-            status,
-          });
-        }
-      } catch {}
+      hackathons.push({
+        id: `devfolio-${s.slug || s.id}`,
+        name: s.name || "Unknown Hackathon",
+        tagline: "",
+        url: `https://devfolio.co/hackathons/${s.slug}`,
+        source: "devfolio" as const,
+        startDate: startDate ? new Date(startDate).toISOString() : "",
+        endDate: endDate ? new Date(endDate).toISOString() : "",
+        location: s.location || (isOnline ? "Online" : "TBD"),
+        mode: isOnline ? "online" : "in-person",
+        logo: s.banner_url || "",
+        themes: Array.isArray(s.hashtags)
+          ? s.hashtags.map((t: any) => t.name || "")
+          : [],
+        participants: s.participating_count || undefined,
+        status,
+      });
     }
 
     return hackathons;
@@ -266,7 +282,8 @@ let cacheTimestamp = 0;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 export async function getAllHackathons(
-  forceRefresh = false
+  forceRefresh = false,
+  location?: string
 ): Promise<Hackathon[]> {
   const now = Date.now();
 
@@ -275,7 +292,7 @@ export async function getAllHackathons(
     cachedHackathons.length > 0 &&
     now - cacheTimestamp < CACHE_TTL
   ) {
-    return cachedHackathons;
+    return filterByLocation(cachedHackathons, location);
   }
 
   const [devfolio, mlh, devpost] = await Promise.all([
@@ -294,5 +311,15 @@ export async function getAllHackathons(
   cachedHackathons = all.filter((h) => h.status !== "ended");
   cacheTimestamp = now;
 
-  return cachedHackathons;
+  return filterByLocation(cachedHackathons, location);
+}
+
+function filterByLocation(hackathons: Hackathon[], location?: string): Hackathon[] {
+  if (!location || location.toLowerCase() === "all") return hackathons;
+  const loc = location.toLowerCase();
+  return hackathons.filter(
+    (h) =>
+      h.location.toLowerCase().includes(loc) ||
+      h.mode === "online"
+  );
 }
