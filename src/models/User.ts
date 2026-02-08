@@ -62,6 +62,13 @@ export interface IUser extends Document {
     recentSubmissions?: { title: string; status: string; language: string; timestamp: string; tags?: string[]; rating?: number }[];
     registrationTimeSeconds?: number;
     city?: string;
+    totalSubmissions?: number;
+    aboutMe?: string;
+    skillTags?: string[];
+    realName?: string;
+    company?: string;
+    school?: string;
+    websites?: string[];
 
   /* ---------- Growth ---------- */
   history: GrowthPoint[];

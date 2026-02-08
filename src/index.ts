@@ -27,6 +27,10 @@ import collegeRoutes from "./routes/college";
 import courseRoutes from "./routes/course";
 import joinRequestRoutes from "./routes/joinRequest";
 import adminRoutes from "./routes/admin";
+import dsaPracticeRoutes from "./routes/dsaPractice";
+import contestHistoryRoutes from "./routes/contestHistory";
+import savedContestRoutes from "./routes/savedContests";
+import hackathonRoutes from "./routes/hackathons";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -59,6 +63,9 @@ app.use("/api/colleges", collegeRoutes);
 app.use("/api", courseRoutes);
 app.use("/api/join-requests", joinRequestRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api/dsa-practice", dsaPracticeRoutes);
+app.use("/api/contest-history", contestHistoryRoutes);
+app.use("/api/contests/saved", savedContestRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers

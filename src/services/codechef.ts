@@ -31,170 +31,166 @@ async function fetchWithRetry(url: string, maxRetries = 3): Promise<any> {
     }
 }
 
+function calculateStars(rating: number): number {
+    if (rating >= 2500) return 7;
+    if (rating >= 2200) return 6;
+    if (rating >= 2000) return 5;
+    if (rating >= 1800) return 4;
+    if (rating >= 1600) return 3;
+    if (rating >= 1400) return 2;
+    return 1;
+}
+
 export async function getCodeChefUser(username: string) {
-    // Trim whitespace from username
     username = username.trim();
 
     try {
-        // 1️⃣ Fetch user profile page
         const response = await fetchWithRetry(
             `https://www.codechef.com/users/${username}`
         );
 
-        // 2️⃣ Parse HTML
         const $ = cheerio.load(response.data);
+        const html = response.data as string;
         const pageText = $("body").text();
-        console.log(`[CodeChef Debug] Page text length: ${pageText.length}`);
 
-        // 3️⃣ Validate user exists
-        const handle = username;
-
-        // Check if we got a valid profile page
+        // Validate user exists
         if (pageText.includes("Page Not Found") || pageText.includes("404")) {
             throw new Error("CodeChef user not found");
         }
 
-        // 4️⃣ Extract data from page text using regex patterns
-        let rating = 0;
-        let maxRating = 0;
-        let stars = 0;
-        let problemsSolved = 0;
-        let globalRank = 0;
-        let countryRank = 0;
+        const handle = username;
 
-        // Extract current rating from various possible patterns
-        // Pattern 1: Look for rating in parentheses format like "3355 (-47)"
-        const ratingPattern1 = /(\d{3,4})\s*\([\+\-]?\d+\)/;
-        const ratingMatch1 = pageText.match(ratingPattern1);
-        if (ratingMatch1) {
-            rating = parseInt(ratingMatch1[1]);
-        }
+        // --- Current Rating (primary selector) ---
+        let rating = parseInt($(".rating-number").first().text().trim()) || 0;
 
-        // Pattern 2: Look for "Rating: XXXX" or similar
+        // Fallback: regex on page text
         if (rating === 0) {
-            const ratingPattern2 = /Rating[\s:]+(\d{3,4})/i;
-            const ratingMatch2 = pageText.match(ratingPattern2);
-            if (ratingMatch2) {
-                rating = parseInt(ratingMatch2[1]);
-            }
+            const m = pageText.match(/Rating[\s:]+(\d{3,4})/i);
+            if (m) rating = parseInt(m[1]);
         }
 
-        // Extract highest rating if mentioned
-        const maxRatingPattern = /Highest\s+Rating[\s:]+(\d{3,4})/i;
-        const maxRatingMatch = pageText.match(maxRatingPattern);
-        if (maxRatingMatch) {
-            maxRating = parseInt(maxRatingMatch[1]);
-        } else {
-            maxRating = rating; // Default to current rating
+        // --- Highest Rating ---
+        let maxRating = 0;
+        const highestText = $(".rating-header small").text();
+        const highestMatch = highestText.match(/(\d{3,4})/);
+        if (highestMatch) {
+            maxRating = parseInt(highestMatch[1]);
         }
+        if (!maxRating) {
+            const m = pageText.match(/Highest\s+Rating[\s:]+(\d{3,4})/i);
+            if (m) maxRating = parseInt(m[1]);
+        }
+        if (!maxRating) maxRating = rating;
 
-        // Extract stars (look for .rating-star or the broad text)
-        let starsFound = 0;
-
-        // Strategy A: Direct selector
-        const starText = $(".rating-star").text().trim();
-        const starMatch = starText.match(/(\d)\s*[★⭐]/i) || pageText.match(/(\d)\s*[★⭐]/i) || pageText.match(/(\d)\s*Star/i);
-
+        // --- Stars ---
+        let stars = 0;
+        const starText = $(".rating-star").text().trim() || $(".rating-header .rating").text().trim();
+        const starMatch = starText.match(/(\d)/);
         if (starMatch) {
-            starsFound = parseInt(starMatch[1]);
+            stars = parseInt(starMatch[1]);
         }
-
-        // Strategy B: Class name check (CodeChef often uses class star1, star2, etc.)
-        if (starsFound === 0) {
+        if (!stars) {
             const starClass = $("[class*='rating-star']").attr("class") || "";
             const classMatch = starClass.match(/star(\d)/i);
-            if (classMatch) starsFound = parseInt(classMatch[1]);
+            if (classMatch) stars = parseInt(classMatch[1]);
+        }
+        // Fallback: derive from rating
+        if (!stars && rating > 0) {
+            stars = calculateStars(rating);
         }
 
-        stars = starsFound;
-
-        // Extract problems solved - this appears as "Total Problems Solved: XXX"
-        const problemsPattern = /Total\s+Problems\s+Solved[\s:]+(\d+)/i;
-        const problemsMatch = pageText.match(problemsPattern);
+        // --- Problems Solved ---
+        let problemsSolved = 0;
+        const problemsMatch = pageText.match(/Total\s+Problems?\s+Solved[\s:]+(\d+)/i)
+            || pageText.match(/Problems?\s+Solved[\s:]+(\d+)/i);
         if (problemsMatch) {
             problemsSolved = parseInt(problemsMatch[1]);
         }
 
-        // Alternative pattern for problems
-        if (problemsSolved === 0) {
-            const problemsPattern2 = /Problems\s+Solved[\s:]+(\d+)/i;
-            const problemsMatch2 = pageText.match(problemsPattern2);
-            if (problemsMatch2) {
-                problemsSolved = parseInt(problemsMatch2[1]);
-            }
+        // --- Ranks ---
+        let globalRank = 0;
+        let countryRank = 0;
+
+        // Primary: .rating-ranks selectors
+        const globalRankEl = $(".rating-ranks .inline-list li:nth-child(1) strong").text().trim();
+        const countryRankEl = $(".rating-ranks .inline-list li:nth-child(2) strong").text().trim();
+        if (globalRankEl) globalRank = parseInt(globalRankEl) || 0;
+        if (countryRankEl) countryRank = parseInt(countryRankEl) || 0;
+
+        // Fallback: iterate li elements
+        if (!globalRank || !countryRank) {
+            $(".rating-ranks li").each((_, el) => {
+                const text = $(el).text().toLowerCase();
+                const value = parseInt($(el).find("strong").text()) || 0;
+                if (!globalRank && text.includes("global")) globalRank = value;
+                else if (!countryRank && text.includes("country")) countryRank = value;
+            });
         }
 
-        // Extract global rank and country rank specifically from .rating-ranks
-        $(".rating-ranks li").each((_, el) => {
-            const text = $(el).text().toLowerCase();
-            const value = parseInt($(el).find("strong").text()) || 0;
-
-            if (text.includes("global rank")) {
-                globalRank = value;
-            } else if (text.includes("country rank")) {
-                countryRank = value;
-            }
-        });
-
-        // Extract global rank (fallback if selectors fail)
-        if (globalRank === 0) {
-            const globalRankPattern = /Global\s+Rank[\s:]+(\d+)/i;
-            const globalRankMatch = pageText.match(globalRankPattern);
-            if (globalRankMatch) globalRank = parseInt(globalRankMatch[1]);
+        // Fallback: regex
+        if (!globalRank) {
+            const m = pageText.match(/Global\s+Rank[\s:]+(\d+)/i);
+            if (m) globalRank = parseInt(m[1]);
+        }
+        if (!countryRank) {
+            const m = pageText.match(/Country\s+Rank[\s:]+(\d+)/i);
+            if (m) countryRank = parseInt(m[1]);
         }
 
-        // Extract country rank (fallback if selectors fail)
-        if (countryRank === 0) {
-            const countryRankPattern = /Country\s+Rank[\s:]+(\d+)/i;
-            const countryRankMatch = pageText.match(countryRankPattern);
-            if (countryRankMatch) countryRank = parseInt(countryRankMatch[1]);
-        }
-
-        // Extract Country Name
-        let country = "";
-        country = $(".user-country-name").text().trim();
-        if (!country) {
-            // Try from rank link title or text
-            const countryLink = $(".rating-ranks a[href*='filterBy=Country']").text();
-            if (countryLink.includes("Country Rank")) {
-                // Sometimes it says "Country Rank (India)"
-                const match = countryLink.match(/\(([^)]+)\)/);
-                if (match) country = match[1];
-            }
-        }
-
-        // Fallback for country rank Link
+        // --- Country ---
+        let country = $(".user-country-name").text().trim();
         if (!country) {
             const countryHref = $(".rating-ranks a[href*='filterBy=Country']").attr("href") || "";
-            const countryMatch = countryHref.match(/filterBy=Country%3D([^&]+)/);
-            if (countryMatch) country = decodeURIComponent(countryMatch[1]).replace(/\+/g, " ");
+            const m = countryHref.match(/filterBy=Country%3D([^&]+)/);
+            if (m) country = decodeURIComponent(m[1]).replace(/\+/g, " ");
         }
 
-        // 8️⃣ Validate that we got at least some data
-        // Check if there's a user header, which indicates the user page loaded correctly
-        const userHeader = $('h1.h2-style').text().trim();
-        if (rating === 0 && problemsSolved === 0 && !userHeader) {
-            // Instead of throwing, just return empty state - better than 500 error
-            console.warn(`[CodeChef] Parsed page but found no data for ${username}. Possible layout change.`);
-        }
-
-        // Extract Division
-        let division = "Div ? ";
+        // --- Division ---
+        let division = "";
         const divMatch = pageText.match(/Division[\s:]+(\d)/i);
         if (divMatch) {
             division = `Div ${divMatch[1]}`;
         } else {
-            // Check in breadcrumbs or titles
             const sideDiv = $(".side-nav__division, .rating-data-info").text();
-            const divMatch2 = sideDiv.match(/Div\s*(\d)/i);
-            if (divMatch2) division = `Div ${divMatch2[1]}`;
+            const m = sideDiv.match(/Div\s*(\d)/i);
+            if (m) division = `Div ${m[1]}`;
+        }
+        if (!division && rating > 0) {
+            division = rating >= 2000 ? "Div 1" : rating >= 1600 ? "Div 2" : "Div 3";
         }
 
-        // Extract Avatar
+        // --- Avatar ---
         const avatarUrl = $(".user-details-container img, .user-avatar img").attr("src")
-            || pageText.match(/https?:\/\/[^"'\s]+\.jpg/i)?.[0];
+            || html.match(/https?:\/\/[^"'\s]+\.(?:jpg|png|jpeg)/i)?.[0];
 
-        // 9️⃣ Return normalized data (matches backend + Mongo schema)
+        // --- Rating History (from embedded script: var all_rating = [...]) ---
+        const history: GrowthPoint[] = [];
+        const scriptMatch = html.match(/var\s+all_rating\s*=\s*(\[[\s\S]*?\]);/);
+        if (scriptMatch) {
+            try {
+                const parsed = JSON.parse(scriptMatch[1]);
+                if (Array.isArray(parsed)) {
+                    for (const entry of parsed) {
+                        // Entries are typically { code, getyear, getmonth, getday, rating, rank, name, end_date, color }
+                        const dateStr = entry.end_date || entry.getdate ||
+                            (entry.getyear && entry.getmonth && entry.getday
+                                ? `${entry.getyear}-${String(entry.getmonth + 1).padStart(2, "0")}-${String(entry.getday).padStart(2, "0")}`
+                                : null);
+                        const score = parseInt(entry.rating) || 0;
+                        if (dateStr && score > 0) {
+                            history.push({ date: dateStr, score });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("[CodeChef] Failed to parse all_rating JSON:", (e as Error).message);
+            }
+        }
+
+        if (rating === 0 && problemsSolved === 0) {
+            console.warn(`[CodeChef] Parsed page but found no data for ${username}. Possible layout change.`);
+        }
+
         return {
             handle,
             platform: "codechef" as const,
@@ -205,23 +201,14 @@ export async function getCodeChefUser(username: string) {
             countryRank: countryRank || 0,
             problemsSolved: problemsSolved || 0,
             country: country || "Unknown",
-
-            // Rich Fields
             avatar: avatarUrl,
-            division: division,
-            title: `${stars} ★ ${division}`,
-
-            history: [] as GrowthPoint[],
+            division: division || "Unknown",
+            title: `${stars || calculateStars(rating)} ★ ${division || ""}`.trim(),
+            history,
         };
     } catch (err: any) {
         console.error("CODECHEF SERVICE ERROR:", err.message);
-        console.error("Error details:", {
-            code: err.code,
-            status: err.response?.status,
-            statusText: err.response?.statusText,
-        });
 
-        // Provide specific error messages
         if (err.response?.status === 404) {
             throw new Error("CodeChef user not found");
         } else if (err.code === "ECONNABORTED" || err.code === "ETIMEDOUT") {
