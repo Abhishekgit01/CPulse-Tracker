@@ -41,7 +41,4 @@ const CompanySchema = new Schema<ICompany>(
     }
 );
 
-// Index for faster lookups
-CompanySchema.index({ slug: 1 });
-
 export const Company = mongoose.model<ICompany>("Company", CompanySchema);
