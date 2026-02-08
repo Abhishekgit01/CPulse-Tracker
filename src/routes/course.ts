@@ -3,6 +3,7 @@ import { Course } from "../models/Course";
 import { College } from "../models/College";
 import { AuthUser } from "../models/AuthUser";
 import { User } from "../models/User";
+import { calculateCPulseScore, PlatformProfile } from "../services/cpulseRating";
 import { requireAuth } from "../middleware/auth";
 import { requireCollegeManager } from "../middleware/roles";
 
@@ -131,27 +132,45 @@ router.get("/courses/:id/leaderboard", async (req, res) => {
     const course = await Course.findById(req.params.id).populate("members", "displayName email cpProfiles");
     if (!course) return res.status(404).json({ error: "Course not found" });
 
-    // Get CP data for all members' profiles
+    // Aggregate CPulse score per member across all their linked platforms
     const leaderboard: any[] = [];
 
     for (const member of course.members as any[]) {
+      const profiles: PlatformProfile[] = [];
+      let totalSolved = 0;
+      let bestRating = 0;
+
       for (const profile of member.cpProfiles || []) {
         const cpUser = await User.findOne({ handle: profile.handle, platform: profile.platform });
         if (cpUser) {
-          leaderboard.push({
-            userId: member._id,
-            displayName: member.displayName || member.email,
-            handle: cpUser.handle,
-            platform: cpUser.platform,
-            rating: cpUser.rating || 0,
-            cpulseRating: cpUser.cpulseRating || 0,
-            totalSolved: cpUser.totalSolved || cpUser.problemsSolved || 0,
+          profiles.push({
+            platform: cpUser.platform as any,
+            data: cpUser.toObject(),
+            updatedAt: cpUser.updatedAt,
           });
+          totalSolved += cpUser.totalSolved || cpUser.problemsSolved || 0;
+          bestRating = Math.max(bestRating, cpUser.rating || 0, cpUser.contestRating || 0);
         }
+      }
+
+      if (profiles.length > 0) {
+        const cpulse = calculateCPulseScore(profiles);
+        leaderboard.push({
+          userId: member._id,
+          displayName: member.displayName || member.email,
+          platforms: profiles.map(p => p.platform),
+          cpulseScore: cpulse.score,
+          tier: cpulse.tier,
+          title: cpulse.title,
+          totalSolved,
+          bestRating,
+          // Keep backward compat
+          cpulseRating: cpulse.score,
+        });
       }
     }
 
-    leaderboard.sort((a, b) => b.cpulseRating - a.cpulseRating);
+    leaderboard.sort((a, b) => b.cpulseScore - a.cpulseScore);
 
     res.json({ leaderboard, courseId: course._id, courseName: course.name });
   } catch (err) {

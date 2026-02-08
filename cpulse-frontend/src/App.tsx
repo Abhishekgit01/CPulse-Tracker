@@ -17,9 +17,7 @@ import EnhancedLeaderboard from "./components/EnhancedLeaderboard";
 import EnhancedCodeChefStats from "./components/EnhancedCodeChefStats";
 import ProblemOfTheDay from "./components/ProblemOfTheDay";
 import ContestCalendar from "./components/ContestCalendar";
-import ContestHistory from "./components/ContestHistory";
 import Companies from "./components/Companies";
-import DSAPractice from "./components/DSAPractice";
 import CompanyDetails from "./components/CompanyDetails";
 import { SparklesCore } from "./components/ui/sparkles";
 
@@ -32,7 +30,6 @@ const NAV_LINKS = [
   { to: "/problem-of-day", label: "Daily" },
   { to: "/contests", label: "Contests" },
   { to: "/companies", label: "Companies" },
-  { to: "/dsa-practice", label: "Practice" },
 ];
 
 export default function App() {
@@ -313,12 +310,9 @@ export default function App() {
           <Route path="/codechef/:username" element={<EnhancedCodeChefStats />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
-            <Route path="/contests" element={<ContestCalendar />} />
-              <Route path="/contest-history" element={<Navigate to="/contests" />} />
-              <Route path="/contest-history/:platform/:handle" element={<ContestHistory />} />
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/companies/:slug" element={<CompanyDetails />} />
-            <Route path="/dsa-practice" element={<DSAPractice />} />
+          <Route path="/contests" element={<ContestCalendar />} />
+          <Route path="/companies" element={<Companies />} />
+          <Route path="/companies/:slug" element={<CompanyDetails />} />
           <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
           <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
           <Route path="/onboarding" element={token ? <Onboarding /> : <Navigate to="/login" />} />

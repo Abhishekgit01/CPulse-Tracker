@@ -2,11 +2,13 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthUser } from "../models/AuthUser";
+import { User } from "../models/User";
 import { Course } from "../models/Course";
 import { requireAuth } from "../middleware/auth";
 import { getLeetCodeUser } from "../services/leetcode";
 import { getUserInfo } from "../services/codeforces";
 import { getCodeChefUser } from "../services/codechef";
+import { calculateCPulseScore, PlatformProfile } from "../services/cpulseRating";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
@@ -306,6 +308,58 @@ router.post("/onboarding/complete", requireAuth, async (req, res) => {
     res.json({ user: sanitizeUser(user) });
   } catch (err) {
     res.status(500).json({ error: "Failed to complete onboarding" });
+  }
+});
+
+/* -------- GET AGGREGATED CPULSE SCORE -------- */
+router.get("/cpulse-score", requireAuth, async (req, res) => {
+  try {
+    const authUser = await AuthUser.findById((req as any).user.id);
+    if (!authUser) return res.status(404).json({ error: "User not found" });
+
+    if (authUser.cpProfiles.length === 0) {
+      const result = calculateCPulseScore([]);
+      return res.json(result);
+    }
+
+    // Build platform profiles from the User collection (cached platform data)
+    const profiles: PlatformProfile[] = [];
+
+    for (const cp of authUser.cpProfiles) {
+      const userDoc = await User.findOne({ handle: cp.handle, platform: cp.platform });
+      if (userDoc) {
+        profiles.push({
+          platform: cp.platform,
+          data: userDoc.toObject(),
+          updatedAt: userDoc.updatedAt,
+        });
+      } else {
+        // If no cached data, try to fetch live data
+        try {
+          let data: any = {};
+          if (cp.platform === "leetcode") {
+            data = await getLeetCodeUser(cp.handle);
+          } else if (cp.platform === "codeforces") {
+            data = await getUserInfo(cp.handle);
+          } else if (cp.platform === "codechef") {
+            data = await getCodeChefUser(cp.handle);
+          }
+          profiles.push({
+            platform: cp.platform,
+            data,
+            updatedAt: new Date(),
+          });
+        } catch {
+          // Skip this profile if fetch fails
+        }
+      }
+    }
+
+    const result = calculateCPulseScore(profiles);
+    res.json(result);
+  } catch (err) {
+    console.error("CPULSE SCORE ERROR:", err);
+    res.status(500).json({ error: "Failed to calculate CPulse score" });
   }
 });
 

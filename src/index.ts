@@ -22,14 +22,11 @@ import radarRoutes from "./routes/radar";
 import analysisRoutes from "./routes/analysis";
 import detailedProfileRoutes from "./routes/detailedProfile";
 import contestRoutes from "./routes/contests";
-import savedContestRoutes from "./routes/savedContests";
-import contestHistoryRoutes from "./routes/contestHistory";
 import companyRoutes from "./routes/companies";
 import collegeRoutes from "./routes/college";
 import courseRoutes from "./routes/course";
 import joinRequestRoutes from "./routes/joinRequest";
 import adminRoutes from "./routes/admin";
-import dsaPracticeRoutes from "./routes/dsaPractice";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -56,24 +53,84 @@ app.use("/api/recommend", recommendRoutes);
 app.use("/api/radar", radarRoutes);
 app.use("/api/analysis", analysisRoutes);
 app.use("/api", detailedProfileRoutes);
-app.use("/api/contests/saved", savedContestRoutes);
 app.use("/api/contests", contestRoutes);
-app.use("/api/contest-history", contestHistoryRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/colleges", collegeRoutes);
 app.use("/api", courseRoutes);
 app.use("/api/join-requests", joinRequestRoutes);
 app.use("/admin", adminRoutes);
-app.use("/api/dsa-practice", dsaPracticeRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers
 app.get("/api/metrics/:platform/:username", async (req, res) => {
-  const { platform } = req.params;
-  const username = req.params.username.trim();
+  const { platform, username } = req.params;
 
   try {
-    // Always fetch fresh data from the platform API to ensure enhanced fields are populated
+    // 1️⃣ Check DB
+    const existing = await User.findOne({
+      handle: username,
+      platform,
+    });
+
+    if (existing) {
+        const ex = existing as any;
+        return res.json({
+          platform: ex.platform,
+          handle: ex.handle,
+          rating: ex.rating,
+          maxRating: ex.maxRating,
+          rank: ex.rank,
+          maxRank: ex.maxRank,
+          totalSolved: ex.totalSolved || ex.problemsSolved || 0,
+          cpulseRating: ex.cpulseRating,
+          history: ex.history || [],
+
+          // Rich profile fields
+          avatar: ex.avatar,
+          title: ex.title,
+          contribution: ex.contribution,
+          friendOfCount: ex.friendOfCount,
+          organization: ex.organization,
+          lastOnlineTimeSeconds: ex.lastOnlineTimeSeconds,
+          contestRating: ex.contestRating,
+          globalRanking: ex.globalRanking,
+          topPercentage: ex.topPercentage,
+          reputation: ex.reputation,
+          division: ex.division,
+          country: ex.country,
+
+          // Enhanced fields
+          contestsAttended: ex.contestsAttended,
+          streak: ex.streak,
+          totalActiveDays: ex.totalActiveDays,
+          badges: ex.badges || [],
+          languages: ex.languages || [],
+          topTags: ex.topTags || [],
+          recentSubmissions: ex.recentSubmissions || [],
+          registrationTimeSeconds: ex.registrationTimeSeconds,
+          city: ex.city,
+
+    // LeetCode specific
+            easySolved: ex.easySolved,
+            mediumSolved: ex.mediumSolved,
+            hardSolved: ex.hardSolved,
+            totalSubmissions: ex.totalSubmissions,
+            aboutMe: ex.aboutMe || "",
+            skillTags: ex.skillTags || [],
+            realName: ex.realName || "",
+            company: ex.company || "",
+            school: ex.school || "",
+            websites: ex.websites || [],
+
+            // CodeChef specific
+            stars: ex.stars,
+            globalRank: ex.globalRank,
+            countryRank: ex.countryRank,
+            problemsSolved: ex.problemsSolved,
+          });
+        }
+
+    // 2️⃣ Fetch from platform
     let normalizedData: Record<string, any>;
 
     if (platform === "codeforces") {
@@ -158,48 +215,7 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
         });
   } catch (err: any) {
     console.error("METRICS ERROR:", err.message);
-
-    // If rate-limited (429) or timeout, try returning cached data from DB
-    if (err.response?.status === 429 || err.code === "ECONNABORTED") {
-      const cached = await User.findOne({ handle: username, platform });
-      if (cached) {
-        console.log(`[Cache Fallback] Returning cached data for ${platform}/${username}`);
-        const u = cached as any;
-        return res.json({
-          platform: u.platform,
-          handle: u.handle,
-          rating: u.rating,
-          maxRating: u.maxRating,
-          rank: u.rank,
-          maxRank: u.maxRank,
-          totalSolved: u.totalSolved || u.problemsSolved || 0,
-          cpulseRating: u.cpulseRating,
-          history: u.history || [],
-          avatar: u.avatar,
-          title: u.title,
-          contribution: u.contribution,
-          friendOfCount: u.friendOfCount,
-          organization: u.organization,
-          lastOnlineTimeSeconds: u.lastOnlineTimeSeconds,
-          contestRating: u.contestRating,
-          globalRanking: u.globalRanking,
-          topPercentage: u.topPercentage,
-          reputation: u.reputation,
-          division: u.division,
-          country: u.country,
-          stars: u.stars,
-          globalRank: u.globalRank,
-          countryRank: u.countryRank,
-          problemsSolved: u.problemsSolved,
-          easySolved: u.easySolved,
-          mediumSolved: u.mediumSolved,
-          hardSolved: u.hardSolved,
-          _cached: true,
-        });
-      }
-    }
-
-    res.status(err.response?.status === 429 ? 429 : 400).json({
+    res.status(400).json({
       error: "Failed to fetch metrics",
       details: err.message,
     });

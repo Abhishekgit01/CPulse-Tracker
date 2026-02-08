@@ -70,6 +70,27 @@ interface ProfileData {
   division?: string;
 }
 
+interface CPulseReward {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  earned: boolean;
+  category: string;
+}
+
+interface CPulseScoreData {
+  score: number;
+  tier: string;
+  title: string;
+  nextTier: string | null;
+  pointsToNextTier: number;
+  platformScores: Record<string, number>;
+  rewards: CPulseReward[];
+  activityBonus: number;
+  diversityBonus: number;
+}
+
 const PLATFORM_CONFIG: Record<
   string,
   { name: string; color: string; gradient: string; border: string; bg: string; accent: string }
@@ -99,6 +120,201 @@ const PLATFORM_CONFIG: Record<
     accent: "yellow",
   },
 };
+
+const TIER_COLORS: Record<string, { bg: string; border: string; text: string; glow: string }> = {
+  "Bronze III": { bg: "from-amber-900 to-amber-800", border: "border-amber-700/50", text: "text-amber-400", glow: "shadow-amber-900/30" },
+  "Bronze II":  { bg: "from-amber-900 to-amber-800", border: "border-amber-700/50", text: "text-amber-400", glow: "shadow-amber-900/30" },
+  "Bronze I":   { bg: "from-amber-800 to-amber-700", border: "border-amber-600/50", text: "text-amber-300", glow: "shadow-amber-800/30" },
+  "Silver III": { bg: "from-gray-700 to-gray-600", border: "border-gray-500/50", text: "text-gray-300", glow: "shadow-gray-700/30" },
+  "Silver II":  { bg: "from-gray-700 to-gray-600", border: "border-gray-500/50", text: "text-gray-300", glow: "shadow-gray-700/30" },
+  "Silver I":   { bg: "from-gray-600 to-gray-500", border: "border-gray-400/50", text: "text-gray-200", glow: "shadow-gray-600/30" },
+  "Gold III":   { bg: "from-yellow-700 to-amber-600", border: "border-yellow-500/50", text: "text-yellow-300", glow: "shadow-yellow-700/30" },
+  "Gold II":    { bg: "from-yellow-700 to-amber-600", border: "border-yellow-500/50", text: "text-yellow-300", glow: "shadow-yellow-700/30" },
+  "Gold I":     { bg: "from-yellow-600 to-amber-500", border: "border-yellow-400/50", text: "text-yellow-200", glow: "shadow-yellow-600/30" },
+  "Platinum":   { bg: "from-cyan-700 to-teal-600", border: "border-cyan-500/50", text: "text-cyan-300", glow: "shadow-cyan-700/30" },
+  "Diamond":    { bg: "from-indigo-600 to-purple-600", border: "border-indigo-400/50", text: "text-indigo-200", glow: "shadow-indigo-600/50" },
+};
+
+function CPulseScoreCard({ data }: { data: CPulseScoreData }) {
+  const tierStyle = TIER_COLORS[data.tier] || TIER_COLORS["Bronze III"];
+  const earnedRewards = data.rewards.filter(r => r.earned);
+  const unearnedRewards = data.rewards.filter(r => !r.earned);
+  const nextUnearned = unearnedRewards[0];
+  const [showAllRewards, setShowAllRewards] = useState(false);
+
+  // Overall progress bar (0-1000)
+  const overallProgress = Math.min((data.score / 1000) * 100, 100);
+
+  return (
+    <div className="mb-8 space-y-4">
+      {/* Main Score Card */}
+      <div className={`bg-gradient-to-r ${tierStyle.bg} backdrop-blur-xl border ${tierStyle.border} rounded-2xl p-6 shadow-xl ${tierStyle.glow}`}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            {/* Score Circle */}
+            <div className="relative">
+              <div className="w-20 h-20 rounded-2xl bg-black/30 border border-white/10 flex flex-col items-center justify-center">
+                <span className="text-3xl font-black text-white">{data.score}</span>
+                <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">CPulse</span>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xl font-bold ${tierStyle.text}`}>{data.tier}</span>
+                {data.activityBonus > 0 && (
+                  <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">
+                    +{data.activityBonus} Active
+                  </span>
+                )}
+                {data.diversityBonus > 0 && (
+                  <span className="text-[10px] font-bold bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/20">
+                    +{data.diversityBonus} Multi
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-white/70 font-medium">{data.title}</p>
+              {data.nextTier && (
+                <p className="text-xs text-white/40 mt-1">
+                  {data.pointsToNextTier} pts to {data.nextTier}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Earned count badge */}
+          <div className="text-right">
+            <div className="text-3xl font-black text-white/90">{earnedRewards.length}</div>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Rewards</p>
+          </div>
+        </div>
+
+        {/* Progress Bar to next tier */}
+        <div className="mt-2">
+          <div className="flex justify-between text-[10px] text-white/40 font-bold mb-1">
+            <span>Score Progress</span>
+            <span>{data.score} / 1000</span>
+          </div>
+          <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-white/40 to-white/70 transition-all duration-700"
+              style={{ width: `${overallProgress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Platform Score Breakdown */}
+        {Object.keys(data.platformScores).length > 0 && (
+          <div className="grid grid-cols-3 gap-3 mt-4">
+            {Object.entries(data.platformScores).map(([platform, score]) => (
+              <div key={platform} className="bg-black/20 rounded-xl p-3 border border-white/5">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider capitalize">{platform}</p>
+                <p className="text-lg font-bold text-white">{score}</p>
+                <div className="h-1 bg-black/30 rounded-full overflow-hidden mt-1">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      platform === "codeforces" ? "bg-blue-400" :
+                      platform === "leetcode" ? "bg-amber-400" : "bg-yellow-400"
+                    }`}
+                    style={{ width: `${(score / 1000) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Rewards Section */}
+      <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-lg">
+              <span role="img" aria-label="trophy">&#127942;</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Rewards & Achievements</h3>
+              <p className="text-xs text-gray-400">
+                {earnedRewards.length} of {data.rewards.length} earned
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowAllRewards(!showAllRewards)}
+            className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+          >
+            {showAllRewards ? "Show Less" : "Show All"}
+          </button>
+        </div>
+
+        {/* Next reward to unlock */}
+        {nextUnearned && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1">Next Reward</p>
+            <div className="flex items-center gap-2">
+              <span className="text-lg opacity-40">{nextUnearned.icon}</span>
+              <span className="text-sm font-medium text-white">{nextUnearned.name}</span>
+              <span className="text-xs text-gray-400">- {nextUnearned.description}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Earned Rewards Grid */}
+        {earnedRewards.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {earnedRewards.map(r => (
+              <div
+                key={r.id}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 group relative"
+                title={r.description}
+              >
+                <span className="text-sm">{r.icon}</span>
+                <span className="text-xs font-semibold text-amber-300">{r.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {earnedRewards.length === 0 && (
+          <p className="text-sm text-gray-500 text-center py-4">
+            No rewards earned yet. Keep grinding!
+          </p>
+        )}
+
+        {/* All rewards (collapsed by default) */}
+        {showAllRewards && (
+          <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">All Rewards</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {data.rewards.map(r => (
+                <div
+                  key={r.id}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
+                    r.earned
+                      ? "bg-amber-500/5 border-amber-500/20"
+                      : "bg-gray-900/30 border-white/5 opacity-50"
+                  }`}
+                >
+                  <span className={`text-lg ${r.earned ? "" : "grayscale"}`}>{r.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium truncate ${r.earned ? "text-white" : "text-gray-400"}`}>
+                      {r.name}
+                    </p>
+                    <p className="text-[10px] text-gray-500 truncate">{r.description}</p>
+                  </div>
+                  {r.earned && (
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex-shrink-0">
+                      Earned
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function StatCard({
   label,
@@ -419,9 +635,12 @@ export default function UserDashboard() {
   const [collegeError, setCollegeError] = useState("");
   const [requestMessage, setRequestMessage] = useState("");
   const [showBrowser, setShowBrowser] = useState(false);
+  const [cpulseScore, setCpulseScore] = useState<CPulseScoreData | null>(null);
+  const [cpulseLoading, setCpulseLoading] = useState(true);
 
   useEffect(() => {
     fetchProfileData();
+    fetchCPulseScore();
   }, [user?.cpProfiles?.length]); // eslint-disable-line
 
   const fetchProfileData = async () => {
@@ -437,6 +656,22 @@ export default function UserDashboard() {
       // Ignore
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCPulseScore = async () => {
+    if (!user) {
+      setCpulseLoading(false);
+      return;
+    }
+    setCpulseLoading(true);
+    try {
+      const res = await api.get("/auth/cpulse-score");
+      setCpulseScore(res.data);
+    } catch {
+      // Ignore
+    } finally {
+      setCpulseLoading(false);
     }
   };
 
@@ -598,10 +833,20 @@ export default function UserDashboard() {
             {user.cpProfiles.length} profile
             {user.cpProfiles.length !== 1 ? "s" : ""} linked
           </span>
-        </div>
-        </div>
+          </div>
+          </div>
 
-        {/* College/Course Section */}
+          {/* CPulse Score Card */}
+          {cpulseLoading ? (
+            <div className="bg-gray-800/50 border border-white/10 rounded-2xl p-8 mb-8 animate-pulse">
+              <div className="h-20 bg-gray-700/50 rounded-xl mb-4" />
+              <div className="h-2 bg-gray-700/50 rounded-full" />
+            </div>
+          ) : cpulseScore ? (
+            <CPulseScoreCard data={cpulseScore} />
+          ) : null}
+
+          {/* College/Course Section */}
         <div className="bg-gray-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
