@@ -66,6 +66,7 @@ app.use("/admin", adminRoutes);
 app.use("/api/dsa-practice", dsaPracticeRoutes);
 app.use("/api/contest-history", contestHistoryRoutes);
 app.use("/api/contests/saved", savedContestRoutes);
+app.use("/api/hackathons", hackathonRoutes);
 
 /* ===================== UNIFIED STEALTH METRICS ===================== */
 // This endpoint replaces /history to bypass browser ad-blockers

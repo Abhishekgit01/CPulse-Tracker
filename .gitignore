@@ -5,6 +5,7 @@
 
 # Dependencies
 node_modules/
+**/node_modules/
 jspm_packages/
 
 # Build outputs
@@ -33,3 +34,7 @@ Thumbs.db
 
 # Optional: coverage directory used by testing tools
 coverage/
+
+# Misc
+bun.lock
+.orchids/
