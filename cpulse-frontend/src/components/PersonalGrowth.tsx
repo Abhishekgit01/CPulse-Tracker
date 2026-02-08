@@ -401,42 +401,52 @@ api.get(`/api/recommend/${username}/${res[0].rating}`)
             </>
           )}
 
-          {data.platform === "leetcode" && (
-            <>
-              <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <Trophy size={12} /> Contest Rating
-                </p>
-                <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                  {data.contestRating || 'Unrated'}
-                </p>
-              </div>
-              <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <Globe size={12} /> Global Rank
-                </p>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  #{data.globalRanking?.toLocaleString() || 'N/A'}
-                </p>
-              </div>
-              <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <Award size={12} /> Reputation
-                </p>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  {data.reputation || 0}
-                </p>
-              </div>
-              <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <BarChart2 size={12} /> Top %
-                </p>
-                <p className="text-lg font-bold text-emerald-500">
-                  {data.topPercentage ? `${data.topPercentage.toFixed(2)}%` : 'N/A'}
-                </p>
-              </div>
-            </>
-          )}
+            {data.platform === "leetcode" && (
+              <>
+                <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    <Trophy size={12} /> Contest Rating
+                  </p>
+                  <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                    {data.contestRating || 'Unrated'}
+                  </p>
+                </div>
+                <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    <Globe size={12} /> Global Rank
+                  </p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    #{data.globalRanking?.toLocaleString() || 'N/A'}
+                  </p>
+                </div>
+                <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    <Award size={12} /> Reputation
+                  </p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    {data.reputation || 0}
+                  </p>
+                </div>
+                <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    <BarChart2 size={12} /> Top %
+                  </p>
+                  <p className="text-lg font-bold text-emerald-500">
+                    {data.topPercentage ? `${data.topPercentage.toFixed(2)}%` : 'N/A'}
+                  </p>
+                </div>
+                {data.totalSubmissions !== undefined && (
+                  <div className="bg-gray-50/50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/50 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                      <Zap size={12} /> Total Submissions
+                    </p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                      {data.totalSubmissions}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
 
           {data.platform === "codechef" && (
             <>
@@ -668,26 +678,57 @@ api.get(`/api/recommend/${username}/${res[0].rating}`)
           </>
         )}
 
-        {data.platform === "leetcode" && (
-          <>
-            <Stat label="Total Solved" value={data.totalSolved} />
-            <Stat label="Easy" value={data.easySolved} />
-            <Stat label="Medium" value={data.mediumSolved} />
-            <Stat label="Hard" value={data.hardSolved} />
-          </>
+          {data.platform === "leetcode" && (
+            <>
+              <Stat label="Total Solved" value={data.totalSolved} />
+              <Stat label="Easy" value={data.easySolved} />
+              <Stat label="Medium" value={data.mediumSolved} />
+              <Stat label="Hard" value={data.hardSolved} />
+            </>
+          )}
+        </div>
+
+        {/* ===================== DIFFICULTY BREAKDOWN (LeetCode) ===================== */}
+        {data.platform === "leetcode" && data.totalSolved !== undefined && (
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800/50 mt-6">
+            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3 mb-6">
+              <Target className="text-indigo-500" /> Difficulty Breakdown
+            </h3>
+            <div className="space-y-4">
+              {[
+                { label: "Easy", count: data.easySolved || 0, color: "emerald", total: data.totalSolved || 1 },
+                { label: "Medium", count: data.mediumSolved || 0, color: "amber", total: data.totalSolved || 1 },
+                { label: "Hard", count: data.hardSolved || 0, color: "red", total: data.totalSolved || 1 },
+              ].map(({ label, count, color, total }) => (
+                <div key={label}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className={`text-sm font-bold text-${color}-600 dark:text-${color}-400`}>{label}</span>
+                    <span className="text-xs font-bold text-gray-500">{count} / {total} ({total > 0 ? ((count / total) * 100).toFixed(1) : 0}%)</span>
+                  </div>
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        color === "emerald" ? "bg-emerald-500" : color === "amber" ? "bg-amber-500" : "bg-red-500"
+                      }`}
+                      style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {data.platform === "codechef" && (
-          <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <Stat label="Current Rating" value={data.rating} />
             <Stat label="Max Rating" value={data.maxRating} />
             <Stat label="Stars" value={`${data.stars || 0}★`} />
             <Stat label="Global Rank" value={data.globalRank} />
             <Stat label="Country Rank" value={data.countryRank} />
             <Stat label="Problems Solved" value={data.problemsSolved} />
-          </>
+          </div>
         )}
-      </div>
 
       {/* ===================== STREAK & ACTIVITY (LeetCode) ===================== */}
       {data.platform === "leetcode" && (data.streak || data.totalActiveDays || (data.badges && data.badges.length > 0)) && (
