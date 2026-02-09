@@ -1,0 +1,15 @@
+{
+  "installCommand": "npm install && npm --prefix cpulse-frontend install",
+  "buildCommand": "tsc && npm --prefix cpulse-frontend run build",
+  "outputDirectory": "cpulse-frontend/build",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

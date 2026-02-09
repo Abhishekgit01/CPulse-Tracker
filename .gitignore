@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+cpulse-frontend/node_modules/
+
+.cache/
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+cpulse-frontend/.env
+cpulse-frontend/.env.local
+cpulse-frontend/.env.*.local
+
+# Build output
+dist/
+cpulse-frontend/build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug / logs
+debug.log
+*.log
+npm-debug.log*
+
+# Temp / test files
+_tmp_*.js
+_verify_*.js
+test_*.js
+test-*.js
+test_*.json
+read_files.js
+verify.js
+debug-routes.ts
+temp.txt
+$null
+
+# Orchids internal
+.orchids/
+
+# Lock files (keep package-lock.json, ignore bun.lock)
+bun.lock

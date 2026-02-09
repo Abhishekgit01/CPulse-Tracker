@@ -1,0 +1,11 @@
+feat: clean repo, fix deployment, add Unstop hackathons, improve community/hackathon UI
+
+- Updated .gitignore: removed node_modules, .vscode, .orchids, temp/test files from tracking
+- Added frontend .env.example for REACT_APP_API_URL config
+- Fixed cross-platform build script
+- Added college seeder with 20 default colleges on startup
+- Added DB cleanup admin endpoint
+- Added Unstop as hackathon source
+- Added search filter and countdown timers to hackathon UI
+- Improved community auth error handling
+- All API endpoints verified working for localhost and Vercel deployment
