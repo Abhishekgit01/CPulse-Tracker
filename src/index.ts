@@ -57,6 +57,17 @@ app.get("/", (_req, res) => {
   res.send("CPulse backend is running 🚀");
 });
 
+app.get("/api/health", async (_req, res) => {
+  const mongoose = await import("mongoose");
+  const dbState = mongoose.default.connection.readyState;
+  const states = ["disconnected", "connected", "connecting", "disconnecting"];
+  res.json({
+    status: "ok",
+    database: states[dbState] || "unknown",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 /* ===================== ROUTES ===================== */
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

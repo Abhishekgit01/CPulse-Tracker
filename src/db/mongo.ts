@@ -18,14 +18,20 @@ export async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false, // Disable buffering to fail fast if no connection
+      serverSelectionTimeoutMS: 10000, // Fail after 10 seconds instead of 30
+      connectTimeoutMS: 10000,
     };
 
-    console.log("Connecting to MongoDB...");
+    console.log("Connecting to MongoDB...", MONGO_URI ? "(URI provided)" : "(NO URI!)");
     cached.promise = mongoose.connect(MONGO_URI, opts).then((mongoose) => {
       console.log("MongoDB connected successfully");
-      // Seed data only on new connection
+      // Seed data only on new connection (background, don't block)
       seedDatabase().catch((err) => console.error("Seed error:", err));
       return mongoose;
+    }).catch((err) => {
+      console.error("MongoDB connection FAILED:", err.message);
+      console.error("Check: 1) MONGO_URI env var 2) Atlas Network Access (whitelist 0.0.0.0/0) 3) Username/password");
+      throw err;
     });
   }
 
