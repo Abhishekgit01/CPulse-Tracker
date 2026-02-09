@@ -17,6 +17,7 @@ export interface Hackathon {
   participants?: number;
   applyBy?: string;
   status: "upcoming" | "open" | "ended";
+  registrationOpen?: boolean;
 }
 
 const UA =
@@ -79,7 +80,7 @@ function parseDateRange(text: string, defaultYear: number): { start: string; end
     if (!isNaN(d.getTime())) {
       return { start: d.toISOString(), end: d.toISOString() };
     }
-  } catch {}
+  } catch { }
 
   return { start: new Date().toISOString(), end: new Date().toISOString() };
 }
@@ -357,60 +358,87 @@ async function fetchUnstop(): Promise<Hackathon[]> {
 }
 
 /* ===================== CURATED BANGALORE HACKATHONS ===================== */
+/* ===================== CURATED BANGALORE HACKATHONS ===================== */
 function getCuratedBangaloreHackathons(): Hackathon[] {
   const now = new Date();
   const hackathons: Hackathon[] = [
-    // February 2026
     {
-      id: "curated-innovation-edu-equity",
-      name: "Innovation for Education Equity Hackathon",
-      tagline: "Building open-source tools to transform public school leadership (ShikshaLokam)",
-      url: "https://shikshalokam.org",
-      source: "devpost",
-      startDate: "2026-02-05T09:00:00.000Z",
-      endDate: "2026-02-06T18:00:00.000Z",
-      location: "Bengaluru, India (InvokED 5.0)",
+      id: "curated-rift-26",
+      name: "RIFT '26 (Physics Wallah)",
+      tagline: "24-hour offline open innovation hackathon by Physics Wallah Institute of Innovation.",
+      url: "https://pwioi.com",
+      source: "unstop",
+      startDate: "2026-02-09T09:00:00.000Z",
+      endDate: "2026-02-20T18:00:00.000Z",
+      location: "Bengaluru, India",
       mode: "in-person",
-      themes: ["EdTech", "Open Source", "Social Impact"],
-      prizes: "₹4,50,000",
-      participants: 200,
-      status: "upcoming",
+      themes: ["AI", "Open Innovation", "EdTech"],
+      prizes: "Up to ₹5,00,000",
+      status: "open",
     },
     {
-      id: "curated-innov8-4-blr",
-      name: "Innov8 4.0",
-      tagline: "Multi-track hackathon covering Blockchain, AI/ML, and HealthTech",
-      url: "https://devfolio.co/hackathons",
+      id: "curated-astrava-2026",
+      name: "ASTRAVA Hackathon - 2026",
+      tagline: "National-level hackathon at Dr. Ambedkar Institute of Technology.",
+      url: "https://unstop.com/o/nK9Vp6I",
+      source: "unstop",
+      startDate: "2026-03-06T09:00:00.000Z",
+      endDate: "2026-03-07T18:00:00.000Z",
+      location: "Dr. AIT, Bengaluru",
+      mode: "in-person",
+      themes: ["Space-Tech", "AI", "Sustainability"],
+      prizes: "₹1,50,000",
+      status: "upcoming",
+      applyBy: "2026-03-02T18:30:00.000Z"
+    },
+    {
+      id: "curated-great-blr-hackathon",
+      name: "The Great Bengaluru Hackathon",
+      tagline: "Multi-campus innovation event uniting engineering institutions across Bengaluru.",
+      url: "https://thegreatindianhackathon.com",
       source: "devfolio",
+      startDate: "2026-03-15T09:00:00.000Z",
+      endDate: "2026-03-16T18:00:00.000Z",
+      location: "Bengaluru, India",
+      mode: "in-person",
+      themes: ["Smart Cities", "FinTech", "HealthTech", "AI"],
+      prizes: "₹2,00,000",
+      status: "upcoming",
+      applyBy: "2026-03-06T18:30:00.000Z"
+    },
+    {
+      id: "curated-xactitude-26",
+      name: "Xactitude '26",
+      tagline: "Technical fest and hackathon at Kristu Jayanti University.",
+      url: "https://kristujayanti.edu.in",
+      source: "unstop",
       startDate: "2026-02-10T09:00:00.000Z",
-      endDate: "2026-02-11T18:00:00.000Z",
-      location: "Bengaluru, India",
+      endDate: "2026-02-10T18:00:00.000Z",
+      location: "Kristu Jayanti University, Bengaluru",
       mode: "in-person",
-      themes: ["Blockchain", "AI/ML", "HealthTech"],
-      prizes: "₹1,00,000+",
-      participants: 300,
-      status: "upcoming",
+      themes: ["Full Stack", "AI/ML"],
+      prizes: "₹50,000+",
+      status: "open",
     },
     {
-      id: "curated-hack-with-gdg-s3",
-      name: "Hack With GDG S3",
-      tagline: "Google Developer Group hackathon – Cloud, Web & Mobile",
-      url: "https://gdg.community.dev/gdg-bangalore/",
-      source: "devfolio",
+      id: "curated-cmrit-techvision",
+      name: "CMRIT Tech Vision 2026",
+      tagline: "National Level Project Expo & Hackathon at CMRIT.",
+      url: "https://cmrit.ac.in",
+      source: "unstop",
       startDate: "2026-02-13T09:00:00.000Z",
-      endDate: "2026-02-14T18:00:00.000Z",
-      location: "Bengaluru, India",
+      endDate: "2026-02-13T18:00:00.000Z",
+      location: "CMRIT, Bengaluru",
       mode: "in-person",
-      themes: ["Google Cloud", "Web Dev", "Mobile Dev"],
-      prizes: "Swags & Mentorship",
-      participants: 200,
+      themes: ["IoT", "AI/ML", "Automation"],
+      prizes: "₹40,000+",
       status: "upcoming",
     },
     {
       id: "curated-zyph-blr-2026",
       name: "Zyph Hackathon",
       tagline: "Open-theme hackathon with no restrictions – build anything",
-      url: "https://devfolio.co/hackathons",
+      url: "https://zyph-hack.devfolio.co",
       source: "devfolio",
       startDate: "2026-02-14T09:00:00.000Z",
       endDate: "2026-02-15T18:00:00.000Z",
@@ -418,290 +446,114 @@ function getCuratedBangaloreHackathons(): Hackathon[] {
       mode: "in-person",
       themes: ["Open Innovation"],
       prizes: "₹50,000+",
-      participants: 250,
       status: "upcoming",
-    },
-    {
-      id: "curated-build-india-anthropic-2026",
-      name: "Build India: Anthropic x Replit x Lightspeed",
-      tagline: "AI-native products purpose-built for India using Claude and Replit – $35K in bounties",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-02-15T09:00:00.000Z",
-      endDate: "2026-02-15T21:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["AI", "Language Diversity", "India-specific Workflows"],
-      prizes: "$35,000",
-      participants: 500,
-      status: "upcoming",
-    },
-    {
-      id: "curated-enigma-26-blr",
-      name: "Enigma '26",
-      tagline: "Open-theme general tech hackathon in Bengaluru",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-02-20T09:00:00.000Z",
-      endDate: "2026-02-21T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Open Innovation", "Full Stack"],
-      prizes: "₹75,000+",
-      participants: 300,
-      status: "upcoming",
-    },
-    {
-      id: "curated-semixthon-blr",
-      name: "SemiXthon",
-      tagline: "HealthTech and IoT/Hardware focused hackathon",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-02-20T09:00:00.000Z",
-      endDate: "2026-02-21T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["HealthTech", "IoT", "Hardware"],
-      prizes: "₹60,000+",
-      participants: 200,
-      status: "upcoming",
-    },
-    {
-      id: "curated-codelites-2-blr",
-      name: "CodeLites 2.0",
-      tagline: "Open-theme coding and hackathon event for all skill levels",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-02-21T09:00:00.000Z",
-      endDate: "2026-02-22T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Open Innovation", "Web Dev"],
-      prizes: "₹40,000+",
-      participants: 200,
-      status: "upcoming",
-    },
-    {
-      id: "curated-gdg-bangalore-build-ai",
-      name: "GDG Bangalore: Build with AI Sprint",
-      tagline: "Google Developer Group Bangalore AI builder sprint",
-      url: "https://gdg.community.dev/gdg-bangalore/",
-      source: "devfolio",
-      startDate: "2026-02-22T09:00:00.000Z",
-      endDate: "2026-02-22T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["AI", "Google Cloud", "Machine Learning", "TensorFlow"],
-      prizes: "Swags & Mentorship",
-      participants: 150,
-      status: "upcoming",
-    },
-    {
-      id: "curated-engineerx-hackfest-blr",
-      name: "EngineerX HackFest",
-      tagline: "General engineering and coding hackathon sprint",
-      url: "https://unstop.com",
-      source: "devpost",
-      startDate: "2026-02-23T09:00:00.000Z",
-      endDate: "2026-02-24T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Full Stack", "Systems", "Open Innovation"],
-      prizes: "₹50,000+",
-      participants: 250,
-      status: "upcoming",
-    },
-    {
-      id: "curated-agentic-india-3-blr",
-      name: "Agentic India 3.0",
-      tagline: "AI Agents & Automation – build the next wave of intelligent agents",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-02-26T09:00:00.000Z",
-      endDate: "2026-02-27T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["AI Agents", "Automation", "LLMs"],
-      prizes: "₹2,00,000+",
-      participants: 400,
-      status: "upcoming",
+      applyBy: "2026-02-10T18:30:00.000Z"
     },
     {
       id: "curated-inceptrix-2-jain-blr",
       name: "Inceptrix 2.0 (JAIN University)",
-      tagline: "Shape Reality – AI, Systems & Disruptive Innovation. Partners: IBM, Dell, TCS, IEEE",
-      url: "https://unstop.com",
-      source: "devpost",
+      tagline: "Shape Reality – AI, Systems & Disruptive Innovation. Partners: IBM, Dell, TCS.",
+      url: "https://unstop.com/o/jain-inceptrix",
+      source: "unstop",
       startDate: "2026-02-27T09:00:00.000Z",
       endDate: "2026-02-28T18:00:00.000Z",
       location: "JAIN University (JU-FET), Bengaluru",
       mode: "in-person",
-      themes: ["AI", "Automation", "Disruptive Innovation", "Systems"],
+      themes: ["AI", "Automation", "Disruptive Innovation"],
       prizes: "₹1,50,000+",
-      participants: 500,
       status: "upcoming",
-    },
-    {
-      id: "curated-ghrhack-2-blr",
-      name: "GHRhack 2.0",
-      tagline: "General tech open-theme hackathon",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-02-28T09:00:00.000Z",
-      endDate: "2026-03-01T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Open Innovation"],
-      prizes: "₹30,000+",
-      participants: 200,
-      status: "upcoming",
-    },
-    // March 2026
-    {
-      id: "curated-binary-v2-blr",
-      name: "BINARY v2",
-      tagline: "Competitive programming meets building – code, compete, create",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-03-07T09:00:00.000Z",
-      endDate: "2026-03-08T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Competitive Programming", "Full Stack", "Open Innovation"],
-      prizes: "₹75,000+",
-      participants: 300,
-      status: "upcoming",
+      applyBy: "2026-02-20T18:30:00.000Z"
     },
     {
       id: "curated-rvce-hackfest-2026",
       name: "RVCE HackFest 2026",
-      tagline: "Annual hackathon by R.V. College of Engineering, Bengaluru",
-      url: "https://unstop.com",
+      tagline: "Annual flagship hackathon by R.V. College of Engineering, Bengaluru",
+      url: "https://rvce-hackfest.devfolio.co",
       source: "devfolio",
       startDate: "2026-03-07T09:00:00.000Z",
       endDate: "2026-03-08T18:00:00.000Z",
       location: "R.V. College of Engineering, Bengaluru",
       mode: "in-person",
-      themes: ["Full Stack", "IoT", "AI/ML", "Blockchain", "Open Innovation"],
+      themes: ["Full Stack", "IoT", "AI/ML", "Blockchain"],
       prizes: "₹1,00,000+",
-      participants: 400,
       status: "upcoming",
-    },
-    {
-      id: "curated-electrothon-8-blr",
-      name: "Electrothon 8.0",
-      tagline: "Hardware-inclusive hackathon – IoT, Embedded Systems, Electronics",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-03-13T09:00:00.000Z",
-      endDate: "2026-03-14T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Hardware", "IoT", "Embedded Systems", "Electronics"],
-      prizes: "₹1,00,000+",
-      participants: 350,
-      status: "upcoming",
+      applyBy: "2026-02-28T18:30:00.000Z"
     },
     {
       id: "curated-hack-nocturne-26",
-      name: "Hack-Nocturne 2.0",
-      tagline: "24-hour night hackathon at Sir MVIT Bengaluru – AI, Blockchain, Web3 & more",
+      name: "Hack-Nocturne 2.0 (Sir MVIT)",
+      tagline: "24-hour night hackathon at Sir MVIT Bengaluru – AI, Blockchain, Web3.",
       url: "https://hack-nocturne.in",
       source: "devfolio",
       startDate: "2026-03-13T18:00:00.000Z",
       endDate: "2026-03-14T18:00:00.000Z",
       location: "Sir M. Visvesvaraya Institute of Technology, Bengaluru",
       mode: "in-person",
-      themes: ["AI & ML", "Network Security", "Blockchain", "Web3", "App Dev", "Web Dev", "Open Innovation"],
+      themes: ["AI & ML", "Blockchain", "App Dev", "Open Innovation"],
       prizes: "₹50,000+",
-      participants: 300,
       status: "upcoming",
+      applyBy: "2026-03-05T18:30:00.000Z"
     },
     {
       id: "curated-pes-hackathon-2026",
       name: "PES University HackPES 2026",
       tagline: "Flagship hackathon by PES University, Bengaluru",
-      url: "https://unstop.com",
+      url: "https://hackpes.com",
       source: "devfolio",
       startDate: "2026-03-14T09:00:00.000Z",
       endDate: "2026-03-15T18:00:00.000Z",
       location: "PES University, Bengaluru",
       mode: "in-person",
-      themes: ["HealthTech", "EdTech", "FinTech", "Sustainability", "Open Innovation"],
+      themes: ["HealthTech", "EdTech", "FinTech", "Sustainability"],
       prizes: "₹75,000+",
-      participants: 350,
       status: "upcoming",
-    },
-    {
-      id: "curated-reckon-7-blr",
-      name: "RECKON 7.0",
-      tagline: "Online open-theme hackathon from Bengaluru college circuit",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-03-14T09:00:00.000Z",
-      endDate: "2026-03-15T18:00:00.000Z",
-      location: "Online (Bengaluru-based)",
-      mode: "online",
-      themes: ["Open Innovation"],
-      prizes: "₹40,000+",
-      participants: 500,
-      status: "upcoming",
+      applyBy: "2026-03-05T18:30:00.000Z"
     },
     {
       id: "curated-et-genai-2026",
       name: "ET GenAI Hackathon 2026",
-      tagline: "Economic Times GenAI Hackathon – Media, FinTech, Smart Cities, Healthcare",
-      url: "https://economictimes.com",
+      tagline: "Nationwide GenAI innovation challenge by The Economic Times.",
+      url: "https://et-genai.economictimes.com",
       source: "devpost",
-      startDate: "2026-03-20T09:00:00.000Z",
-      endDate: "2026-03-28T18:00:00.000Z",
+      startDate: "2026-02-09T09:00:00.000Z",
+      endDate: "2026-02-20T18:00:00.000Z",
       location: "Bengaluru, India (Hybrid)",
       mode: "hybrid",
-      themes: ["GenAI", "Media Innovation", "FinTech", "Smart Cities", "Healthcare", "Open Innovation"],
+      themes: ["GenAI", "FinTech", "Healthcare", "Open Innovation"],
       prizes: "₹10 Lakh",
-      participants: 1000,
-      status: "upcoming",
+      status: "open",
     },
     {
       id: "curated-bmsce-codefest-2026",
       name: "BMSCE CodeFest 2026",
       tagline: "Annual coding and hackathon fest by BMS College of Engineering",
-      url: "https://unstop.com",
+      url: "https://bmsce-codefest.com",
       source: "devfolio",
       startDate: "2026-03-21T09:00:00.000Z",
       endDate: "2026-03-22T18:00:00.000Z",
       location: "BMS College of Engineering, Bengaluru",
       mode: "in-person",
-      themes: ["Web Dev", "Mobile Dev", "AI/ML", "Cloud Computing"],
+      themes: ["Web Dev", "Mobile Dev", "AI/ML"],
       prizes: "₹50,000+",
-      participants: 250,
       status: "upcoming",
-    },
-    {
-      id: "curated-hackprix-s3-blr",
-      name: "HackPrix Season 3",
-      tagline: "Product Design & Engineering focused hackathon",
-      url: "https://devfolio.co/hackathons",
-      source: "devfolio",
-      startDate: "2026-03-28T09:00:00.000Z",
-      endDate: "2026-03-29T18:00:00.000Z",
-      location: "Bengaluru, India",
-      mode: "in-person",
-      themes: ["Product Design", "UI/UX", "Engineering"],
-      prizes: "₹80,000+",
-      participants: 300,
-      status: "upcoming",
-    },
+      applyBy: "2026-03-10T18:30:00.000Z"
+    }
   ];
 
-  // Auto-compute status based on current date
+  // Auto-compute status and registrationOpen based on current date
   return hackathons.map((h) => {
     const start = new Date(h.startDate);
     const end = new Date(h.endDate);
-    let status: Hackathon["status"] = "upcoming";
+    const applyBy = h.applyBy ? new Date(h.applyBy) : undefined;
+
+    let status: Hackathon["status"] = h.status;
     if (now > end) status = "ended";
     else if (now >= start) status = "open";
-    return { ...h, status };
+
+    // Registration is open if NO applyBy is provided OR if applyBy is in the future
+    const registrationOpen = !applyBy || now < applyBy;
+
+    return { ...h, status, registrationOpen };
   });
 }
 
@@ -746,7 +598,17 @@ export async function getAllHackathons(
       new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
 
-  cachedHackathons = all.filter((h) => h.status !== "ended");
+  const nowObj = new Date();
+  cachedHackathons = all
+    .filter((h) => h.status !== "ended")
+    .map((h) => {
+      if (h.registrationOpen !== undefined) return h;
+      const applyBy = h.applyBy ? new Date(h.applyBy) : undefined;
+      const start = new Date(h.startDate);
+      // If no applyBy, registration is open if start date is in future
+      const regOpen = applyBy ? nowObj < applyBy : nowObj < start;
+      return { ...h, registrationOpen: regOpen };
+    });
   cacheTimestamp = now;
 
   return filterByLocation(cachedHackathons, location);

@@ -46,6 +46,7 @@ interface Hackathon {
   prizes?: string;
   participants?: number;
   status: "upcoming" | "open" | "ended";
+  registrationOpen?: boolean;
 }
 
 type Tab = "upcoming" | "hackathons" | "history";
@@ -547,16 +548,52 @@ export default function ContestCalendar() {
           )}
 
           {!hackLoading && filteredHackathons.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredHackathons.map((hack) => (
-                <HackathonCard
-                  key={hack.id}
-                  hackathon={hack}
-                  isSaved={savedHackIds.has(hack.id)}
-                  onToggleSave={token ? toggleSaveHackathon : undefined}
-                  showBookmark={!!token}
-                />
-              ))}
+            <div className="space-y-12">
+              {/* Registering Now Section */}
+              {filteredHackathons.some(h => h.registrationOpen) && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <div className="w-1 h-8 bg-green-500 rounded-full"></div>
+                    Registering Now
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredHackathons
+                      .filter((hack) => hack.registrationOpen)
+                      .map((hack) => (
+                        <HackathonCard
+                          key={hack.id}
+                          hackathon={hack}
+                          isSaved={savedHackIds.has(hack.id)}
+                          onToggleSave={token ? toggleSaveHackathon : undefined}
+                          showBookmark={!!token}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upcoming Events Section */}
+              {filteredHackathons.some(h => !h.registrationOpen) && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <div className="w-1 h-8 bg-amber-500 rounded-full"></div>
+                    Upcoming Events (Registration Opening Soon)
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-75 grayscale-[0.5] hover:opacity-100 hover:grayscale-0 transition-all">
+                    {filteredHackathons
+                      .filter((hack) => !hack.registrationOpen)
+                      .map((hack) => (
+                        <HackathonCard
+                          key={hack.id}
+                          hackathon={hack}
+                          isSaved={savedHackIds.has(hack.id)}
+                          onToggleSave={token ? toggleSaveHackathon : undefined}
+                          showBookmark={!!token}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -727,16 +764,23 @@ function HackathonCard({
 
         {/* Action */}
         <div className="flex gap-2">
-          <a
-            href={hackathon.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm"
-          >
-            <Rocket size={16} />
-            <span>{isLive ? "Join Now" : "Learn More"}</span>
-            <ExternalLink size={14} />
-          </a>
+          {hackathon.registrationOpen ? (
+            <a
+              href={hackathon.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm"
+            >
+              <Rocket size={16} />
+              <span>{isLive ? "Join Now" : "Register Now"}</span>
+              <ExternalLink size={14} />
+            </a>
+          ) : (
+            <div className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-gray-400 font-semibold rounded-xl cursor-not-allowed text-sm">
+              <Rocket size={16} />
+              <span>Registration Closed</span>
+            </div>
+          )}
           {showBookmark && onToggleSave && (
             <button
               onClick={() => onToggleSave(hackathon)}
