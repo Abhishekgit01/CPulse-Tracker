@@ -4,13 +4,6 @@
     {
       "src": "api/index.ts",
       "use": "@vercel/node"
-    },
-    {
-      "src": "cpulse-frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
     }
   ],
   "routes": [
@@ -20,7 +13,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/cpulse-frontend/$1"
+      "dest": "/api/index.ts"
     }
   ]
 }
