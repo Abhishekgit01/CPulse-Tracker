@@ -10,16 +10,39 @@ const router = Router();
 /* -------- LIST ALL COLLEGES -------- */
 router.get("/", async (_req, res) => {
   try {
-    const colleges = await College.find().select("-__v").sort({ name: 1 });
-    const result = await Promise.all(
-      colleges.map(async (c) => {
-        const courseCount = await Course.countDocuments({ collegeId: c._id });
-        const memberCount = await AuthUser.countDocuments({ collegeId: c._id });
-        return { ...c.toObject(), courseCount, memberCount };
-      })
-    );
-    res.json({ colleges: result });
+    const colleges = await College.aggregate([
+      { $sort: { name: 1 } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "collegeId",
+          as: "courses",
+        },
+      },
+      {
+        $lookup: {
+          from: "authusers",
+          localField: "_id",
+          foreignField: "collegeId",
+          as: "members",
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          code: 1,
+          description: 1,
+          courseCount: { $size: "$courses" },
+          memberCount: { $size: "$members" },
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ]);
+    res.json({ colleges });
   } catch (err) {
+    console.error("GET COLLEGES ERROR:", err);
     res.status(500).json({ error: "Failed to fetch colleges" });
   }
 });

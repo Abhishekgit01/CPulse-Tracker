@@ -48,4 +48,7 @@ const AuthUserSchema = new Schema<IAuthUser>(
   { timestamps: true }
 );
 
+AuthUserSchema.index({ collegeId: 1 });
+AuthUserSchema.index({ courseId: 1 });
+
 export const AuthUser = mongoose.model<IAuthUser>("AuthUser", AuthUserSchema);
