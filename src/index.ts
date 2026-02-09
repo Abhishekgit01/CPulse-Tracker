@@ -46,13 +46,7 @@ app.use(
 );
 app.use(express.json());
 
-/* ===================== DB CONNECTION MIDDLEWARE ===================== */
-app.use(async (_req, _res, next) => {
-  await connectDB();
-  next();
-});
-
-/* ===================== HEALTH CHECK ===================== */
+/* ===================== HEALTH CHECK (NO DB REQUIRED) ===================== */
 app.get("/", (_req, res) => {
   res.send("CPulse backend is running 🚀");
 });
@@ -65,7 +59,18 @@ app.get("/api/health", async (_req, res) => {
     status: "ok",
     database: states[dbState] || "unknown",
     timestamp: new Date().toISOString(),
+    mongoUri: process.env.MONGO_URI ? "configured" : "MISSING!",
   });
+});
+
+/* ===================== DB CONNECTION MIDDLEWARE ===================== */
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error("DB connection failed in middleware:", err);
+  }
+  next();
 });
 
 /* ===================== ROUTES ===================== */
