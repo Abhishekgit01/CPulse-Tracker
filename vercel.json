@@ -2,11 +2,6 @@
   "installCommand": "npm install && npm --prefix cpulse-frontend install",
   "buildCommand": "npm run compile && npm --prefix cpulse-frontend run build",
   "outputDirectory": "cpulse-frontend/build",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
