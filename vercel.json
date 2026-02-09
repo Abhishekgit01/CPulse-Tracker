@@ -1,15 +1,26 @@
 {
-  "installCommand": "npm install && npm --prefix cpulse-frontend install",
-  "buildCommand": "npm run compile && npm --prefix cpulse-frontend run build",
-  "outputDirectory": "cpulse-frontend/build",
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "api/index.ts",
+      "use": "@vercel/node"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "cpulse-frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/cpulse-frontend/$1"
     }
   ]
 }
