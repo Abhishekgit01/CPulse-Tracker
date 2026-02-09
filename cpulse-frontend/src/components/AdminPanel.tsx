@@ -56,25 +56,15 @@ export default function AdminPanel() {
     setLoading(true);
     try {
       const res = await api.get("/api/colleges");
-      // Fetch details to get managers
-      const detailed: CollegeItem[] = [];
-      for (const c of res.data.colleges) {
-        try {
-          const d = await api.get(`/api/colleges/${c._id}`);
-          detailed.push({ ...d.data.college, courseCount: c.courseCount, memberCount: c.memberCount });
-        } catch {
-          detailed.push(c);
-        }
-      }
-      setColleges(detailed);
-    } catch {} finally { setLoading(false); }
+      setColleges(res.data.colleges);
+    } catch { } finally { setLoading(false); }
   };
 
   const fetchUsers = async () => {
     try {
       const res = await api.get("/api/admin/users");
       setUsers(res.data.users);
-    } catch {}
+    } catch { }
   };
 
   const handleCreateCollege = async (e: React.FormEvent) => {
@@ -105,7 +95,7 @@ export default function AdminPanel() {
     try {
       await api.delete(`/api/colleges/${id}`);
       fetchColleges();
-    } catch {}
+    } catch { }
   };
 
   const handleAddManager = async (collegeId: string) => {
@@ -133,7 +123,7 @@ export default function AdminPanel() {
       await api.delete(`/api/colleges/${collegeId}/managers/${userId}`);
       fetchColleges();
       fetchUsers();
-    } catch {}
+    } catch { }
   };
 
   const handleChangeRole = async (userId: string, newRole: string) => {
@@ -154,7 +144,7 @@ export default function AdminPanel() {
     <div className="max-w-6xl mx-auto py-8">
       <div className="flex items-center gap-4 mb-8">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-red-500/25">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
@@ -168,11 +158,10 @@ export default function AdminPanel() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              tab === t
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === t
                 ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
                 : "text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent"
-            }`}
+              }`}
           >
             {t === "colleges" ? `Colleges (${colleges.length})` : `Users (${users.length})`}
           </button>
@@ -344,11 +333,10 @@ export default function AdminPanel() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                        u.role === "admin" ? "bg-red-500/15 text-red-400 border border-red-500/20" :
-                        u.role === "manager" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" :
-                        "bg-gray-500/15 text-gray-400 border border-gray-500/20"
-                      }`}>
+                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${u.role === "admin" ? "bg-red-500/15 text-red-400 border border-red-500/20" :
+                          u.role === "manager" ? "bg-purple-500/15 text-purple-400 border border-purple-500/20" :
+                            "bg-gray-500/15 text-gray-400 border border-gray-500/20"
+                        }`}>
                         {u.role}
                       </span>
                     </td>

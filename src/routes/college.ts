@@ -29,12 +29,31 @@ router.get("/", async (_req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "authusers",
+          localField: "managers",
+          foreignField: "_id",
+          as: "managerDetails",
+        },
+      },
+      {
         $project: {
           name: 1,
           code: 1,
           description: 1,
           courseCount: { $size: "$courses" },
           memberCount: { $size: "$members" },
+          managers: {
+            $map: {
+              input: "$managerDetails",
+              as: "m",
+              in: {
+                _id: "$$m._id",
+                displayName: "$$m.displayName",
+                email: "$$m.email",
+              },
+            },
+          },
           createdAt: 1,
           updatedAt: 1,
         },
