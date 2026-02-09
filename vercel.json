@@ -1,4 +1,5 @@
 {
+  "framework": "create-react-app",
   "installCommand": "npm install && npm --prefix cpulse-frontend install",
   "buildCommand": "npm run compile && npm --prefix cpulse-frontend run build",
   "outputDirectory": "cpulse-frontend/build",
