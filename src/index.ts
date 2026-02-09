@@ -55,11 +55,39 @@ app.get("/api/health", async (_req, res) => {
   const mongoose = await import("mongoose");
   const dbState = mongoose.default.connection.readyState;
   const states = ["disconnected", "connected", "connecting", "disconnecting"];
+
+  let connectionError = null;
+  let connectionTest = "not attempted";
+
+  // If disconnected, try to connect and capture error
+  if (dbState === 0) {
+    try {
+      const uri = process.env.MONGO_URI;
+      if (uri) {
+        await mongoose.default.connect(uri, {
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 5000,
+        });
+        connectionTest = "success";
+      } else {
+        connectionTest = "no uri";
+      }
+    } catch (err: any) {
+      connectionError = err.message;
+      connectionTest = "failed";
+    }
+  }
+
+  const newState = mongoose.default.connection.readyState;
+
   res.json({
     status: "ok",
-    database: states[dbState] || "unknown",
+    database: states[newState] || "unknown",
+    previousState: states[dbState],
+    connectionTest,
+    connectionError,
     timestamp: new Date().toISOString(),
-    mongoUri: process.env.MONGO_URI ? "configured" : "MISSING!",
+    mongoUri: process.env.MONGO_URI ? "configured (" + process.env.MONGO_URI.substring(0, 30) + "...)" : "MISSING!",
   });
 });
 
