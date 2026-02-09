@@ -46,6 +46,12 @@ app.use(
 );
 app.use(express.json());
 
+/* ===================== DB CONNECTION MIDDLEWARE ===================== */
+app.use(async (_req, _res, next) => {
+  await connectDB();
+  next();
+});
+
 /* ===================== HEALTH CHECK ===================== */
 app.get("/", (_req, res) => {
   res.send("CPulse backend is running 🚀");
@@ -86,65 +92,65 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
     });
 
     if (existing) {
-        const ex = existing as any;
-        return res.json({
-          platform: ex.platform,
-          handle: ex.handle,
-          rating: ex.rating,
-          maxRating: ex.maxRating,
-          rank: ex.rank,
-          maxRank: ex.maxRank,
-          totalSolved: ex.totalSolved || ex.problemsSolved || 0,
-          cpulseRating: ex.cpulseRating,
-          history: ex.history || [],
+      const ex = existing as any;
+      return res.json({
+        platform: ex.platform,
+        handle: ex.handle,
+        rating: ex.rating,
+        maxRating: ex.maxRating,
+        rank: ex.rank,
+        maxRank: ex.maxRank,
+        totalSolved: ex.totalSolved || ex.problemsSolved || 0,
+        cpulseRating: ex.cpulseRating,
+        history: ex.history || [],
 
-          // Rich profile fields
-          avatar: ex.avatar,
-          title: ex.title,
-          contribution: ex.contribution,
-          friendOfCount: ex.friendOfCount,
-          organization: ex.organization,
-          lastOnlineTimeSeconds: ex.lastOnlineTimeSeconds,
-          contestRating: ex.contestRating,
-          globalRanking: ex.globalRanking,
-          topPercentage: ex.topPercentage,
-          reputation: ex.reputation,
-          division: ex.division,
-          country: ex.country,
+        // Rich profile fields
+        avatar: ex.avatar,
+        title: ex.title,
+        contribution: ex.contribution,
+        friendOfCount: ex.friendOfCount,
+        organization: ex.organization,
+        lastOnlineTimeSeconds: ex.lastOnlineTimeSeconds,
+        contestRating: ex.contestRating,
+        globalRanking: ex.globalRanking,
+        topPercentage: ex.topPercentage,
+        reputation: ex.reputation,
+        division: ex.division,
+        country: ex.country,
 
-          // Enhanced fields
-          badges: ex.badges || [],
-          languages: ex.languages || [],
-          topTags: ex.topTags || [],
-          recentSubmissions: ex.recentSubmissions || [],
-          registrationTimeSeconds: ex.registrationTimeSeconds,
-          city: ex.city,
+        // Enhanced fields
+        badges: ex.badges || [],
+        languages: ex.languages || [],
+        topTags: ex.topTags || [],
+        recentSubmissions: ex.recentSubmissions || [],
+        registrationTimeSeconds: ex.registrationTimeSeconds,
+        city: ex.city,
 
-          // LeetCode specific
-          easySolved: ex.easySolved,
-          mediumSolved: ex.mediumSolved,
-          hardSolved: ex.hardSolved,
-          totalSubmissions: ex.totalSubmissions,
-          aboutMe: ex.aboutMe || "",
-          skillTags: ex.skillTags || [],
-          realName: ex.realName || "",
-          company: ex.company || "",
-          school: ex.school || "",
-          websites: ex.websites || [],
+        // LeetCode specific
+        easySolved: ex.easySolved,
+        mediumSolved: ex.mediumSolved,
+        hardSolved: ex.hardSolved,
+        totalSubmissions: ex.totalSubmissions,
+        aboutMe: ex.aboutMe || "",
+        skillTags: ex.skillTags || [],
+        realName: ex.realName || "",
+        company: ex.company || "",
+        school: ex.school || "",
+        websites: ex.websites || [],
 
-          // CodeChef specific
-          stars: ex.stars,
-          globalRank: ex.globalRank,
-          countryRank: ex.countryRank,
-          problemsSolved: ex.problemsSolved,
-          contestHistory: ex.contestHistory || [],
-          contestsAttended: ex.contestsAttended || 0,
-          institution: ex.institution || "",
-          heatMap: ex.heatMap || [],
-          totalActiveDays: ex.totalActiveDays || 0,
-          streak: ex.streak || 0,
-          });
-        }
+        // CodeChef specific
+        stars: ex.stars,
+        globalRank: ex.globalRank,
+        countryRank: ex.countryRank,
+        problemsSolved: ex.problemsSolved,
+        contestHistory: ex.contestHistory || [],
+        contestsAttended: ex.contestsAttended || 0,
+        institution: ex.institution || "",
+        heatMap: ex.heatMap || [],
+        totalActiveDays: ex.totalActiveDays || 0,
+        streak: ex.streak || 0,
+      });
+    }
 
     // 2️⃣ Fetch from platform
     let normalizedData: Record<string, any>;
@@ -175,63 +181,63 @@ app.get("/api/metrics/:platform/:username", async (req, res) => {
     await user.save();
 
     const u = user as any;
-      res.json({
-        platform: u.platform,
-        handle: u.handle,
-        rating: u.rating,
-        maxRating: u.maxRating,
-        rank: u.rank,
-        maxRank: u.maxRank,
-        totalSolved: u.totalSolved || u.problemsSolved || 0,
-        cpulseRating: u.cpulseRating,
-        history: u.history || [],
+    res.json({
+      platform: u.platform,
+      handle: u.handle,
+      rating: u.rating,
+      maxRating: u.maxRating,
+      rank: u.rank,
+      maxRank: u.maxRank,
+      totalSolved: u.totalSolved || u.problemsSolved || 0,
+      cpulseRating: u.cpulseRating,
+      history: u.history || [],
 
-        // Rich profile fields
-        avatar: u.avatar,
-        title: u.title,
-        contribution: u.contribution,
-        friendOfCount: u.friendOfCount,
-        organization: u.organization,
-        lastOnlineTimeSeconds: u.lastOnlineTimeSeconds,
-        contestRating: u.contestRating,
-        globalRanking: u.globalRanking,
-        topPercentage: u.topPercentage,
-        reputation: u.reputation,
-        division: u.division,
-        country: u.country,
+      // Rich profile fields
+      avatar: u.avatar,
+      title: u.title,
+      contribution: u.contribution,
+      friendOfCount: u.friendOfCount,
+      organization: u.organization,
+      lastOnlineTimeSeconds: u.lastOnlineTimeSeconds,
+      contestRating: u.contestRating,
+      globalRanking: u.globalRanking,
+      topPercentage: u.topPercentage,
+      reputation: u.reputation,
+      division: u.division,
+      country: u.country,
 
-        // Enhanced fields
-        badges: normalizedData.badges || [],
-        languages: normalizedData.languages || [],
-        topTags: normalizedData.topTags || [],
-        recentSubmissions: normalizedData.recentSubmissions || [],
-        registrationTimeSeconds: normalizedData.registrationTimeSeconds,
-        city: normalizedData.city,
+      // Enhanced fields
+      badges: normalizedData.badges || [],
+      languages: normalizedData.languages || [],
+      topTags: normalizedData.topTags || [],
+      recentSubmissions: normalizedData.recentSubmissions || [],
+      registrationTimeSeconds: normalizedData.registrationTimeSeconds,
+      city: normalizedData.city,
 
-        // LeetCode specific
-        easySolved: u.easySolved,
-        mediumSolved: u.mediumSolved,
-        hardSolved: u.hardSolved,
-        totalSubmissions: normalizedData.totalSubmissions,
-        aboutMe: normalizedData.aboutMe || "",
-        skillTags: normalizedData.skillTags || [],
-        realName: normalizedData.realName || "",
-        company: normalizedData.company || "",
-        school: normalizedData.school || "",
-        websites: normalizedData.websites || [],
+      // LeetCode specific
+      easySolved: u.easySolved,
+      mediumSolved: u.mediumSolved,
+      hardSolved: u.hardSolved,
+      totalSubmissions: normalizedData.totalSubmissions,
+      aboutMe: normalizedData.aboutMe || "",
+      skillTags: normalizedData.skillTags || [],
+      realName: normalizedData.realName || "",
+      company: normalizedData.company || "",
+      school: normalizedData.school || "",
+      websites: normalizedData.websites || [],
 
-        // CodeChef specific
-        stars: u.stars,
-        globalRank: u.globalRank,
-        countryRank: u.countryRank,
-        problemsSolved: u.problemsSolved,
-        contestHistory: normalizedData.contestHistory || [],
-        contestsAttended: normalizedData.contestsAttended || 0,
-        institution: normalizedData.institution || "",
-        heatMap: normalizedData.heatMap || [],
-        totalActiveDays: normalizedData.totalActiveDays || 0,
-        streak: normalizedData.streak || 0,
-          });
+      // CodeChef specific
+      stars: u.stars,
+      globalRank: u.globalRank,
+      countryRank: u.countryRank,
+      problemsSolved: u.problemsSolved,
+      contestHistory: normalizedData.contestHistory || [],
+      contestsAttended: normalizedData.contestsAttended || 0,
+      institution: normalizedData.institution || "",
+      heatMap: normalizedData.heatMap || [],
+      totalActiveDays: normalizedData.totalActiveDays || 0,
+      streak: normalizedData.streak || 0,
+    });
   } catch (err: any) {
     console.error("METRICS ERROR:", err.message);
     res.status(400).json({
@@ -384,7 +390,7 @@ app.post("/api/class/add", async (req, res) => {
 });
 
 /* ===================== START ===================== */
-connectDB();
+// connectDB() is now handled in middleware for Vercel serverless support
 
 // Only listen when running directly (not when imported as serverless function)
 if (!process.env.VERCEL) {
