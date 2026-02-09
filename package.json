@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "start": "ts-node src/index.ts",
+    "compile": "tsc",
     "build": "npm --prefix cpulse-frontend run build"
   },
   "repository": {
