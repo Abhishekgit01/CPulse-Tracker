@@ -26,7 +26,6 @@ import PublicProfile from "./components/PublicProfile";
 import { SparklesCore } from "./components/ui/sparkles";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home" },
   { to: "/search", label: "Search" },
   { to: "/college", label: "College" },
   { to: "/leaderboard", label: "Leaderboard" },
@@ -138,51 +137,47 @@ export default function App() {
                 <Link
                   key={to}
                   to={to}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    location.pathname === to
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${location.pathname === to
                       ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
                       : "text-gray-400 hover:text-gray-200 hover:bg-white/[0.05] border border-transparent"
-                  }`}
+                    }`}
                 >
                   {label}
                 </Link>
               ))}
               {token && (
-                  <Link
-                    to="/dashboard"
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      location.pathname === "/dashboard"
-                        ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
-                        : "text-indigo-400/70 hover:text-indigo-300 hover:bg-indigo-500/10 border border-transparent"
+                <Link
+                  to="/dashboard"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${location.pathname === "/dashboard"
+                      ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
+                      : "text-indigo-400/70 hover:text-indigo-300 hover:bg-indigo-500/10 border border-transparent"
                     }`}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                {token && user && (user.role === "manager" || user.role === "admin") && (
-                  <Link
-                    to="/manage"
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      location.pathname === "/manage"
-                        ? "bg-purple-500/15 text-purple-300 border border-purple-500/20"
-                        : "text-purple-400/70 hover:text-purple-300 hover:bg-purple-500/10 border border-transparent"
+                >
+                  Dashboard
+                </Link>
+              )}
+              {token && user && (user.role === "manager" || user.role === "admin") && (
+                <Link
+                  to="/manage"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${location.pathname === "/manage"
+                      ? "bg-purple-500/15 text-purple-300 border border-purple-500/20"
+                      : "text-purple-400/70 hover:text-purple-300 hover:bg-purple-500/10 border border-transparent"
                     }`}
-                  >
-                    Manage
-                  </Link>
-                )}
-                {token && user && user.role === "admin" && (
-                  <Link
-                    to="/admin"
-                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      location.pathname === "/admin"
-                        ? "bg-red-500/15 text-red-300 border border-red-500/20"
-                        : "text-red-400/70 hover:text-red-300 hover:bg-red-500/10 border border-transparent"
+                >
+                  Manage
+                </Link>
+              )}
+              {token && user && user.role === "admin" && (
+                <Link
+                  to="/admin"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${location.pathname === "/admin"
+                      ? "bg-red-500/15 text-red-300 border border-red-500/20"
+                      : "text-red-400/70 hover:text-red-300 hover:bg-red-500/10 border border-transparent"
                     }`}
-                  >
-                    Admin
-                  </Link>
-                )}
+                >
+                  Admin
+                </Link>
+              )}
             </div>
 
             {/* Actions */}
@@ -204,10 +199,10 @@ export default function App() {
                   <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Login</span>
                 </Link>
               ) : (
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Link to={`/profile/${user?.id}`} className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold hover:ring-2 hover:ring-indigo-400/50 transition">
-                      {(user?.displayName || user?.email || "U")[0].toUpperCase()}
-                    </Link>
+                <div className="hidden sm:flex items-center gap-2">
+                  <Link to={`/profile/${user?.id}`} className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold hover:ring-2 hover:ring-indigo-400/50 transition">
+                    {(user?.displayName || user?.email || "U")[0].toUpperCase()}
+                  </Link>
                   <button
                     onClick={logout}
                     className="text-xs text-red-400/80 hover:text-red-400 px-2.5 py-1.5 rounded-lg bg-red-500/[0.06] border border-red-500/10 hover:border-red-500/20 transition-all"
@@ -224,9 +219,9 @@ export default function App() {
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
                   {mobileMenuOpen ? (
-                    <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                    <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>
                   ) : (
-                    <><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></>
+                    <><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" /></>
                   )}
                 </svg>
               </button>
@@ -242,51 +237,47 @@ export default function App() {
                 <Link
                   key={to}
                   to={to}
-                  className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    location.pathname === to
+                  className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${location.pathname === to
                       ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
                       : "text-gray-400 hover:text-gray-200 hover:bg-white/[0.05] border border-transparent"
-                  }`}
+                    }`}
                 >
                   {label}
                 </Link>
               ))}
-                {token && (
-                  <Link
-                    to="/dashboard"
-                    className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                      location.pathname === "/dashboard"
-                        ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
-                        : "text-indigo-400/70 hover:text-indigo-300 hover:bg-indigo-500/10 border border-transparent"
+              {token && (
+                <Link
+                  to="/dashboard"
+                  className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${location.pathname === "/dashboard"
+                      ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
+                      : "text-indigo-400/70 hover:text-indigo-300 hover:bg-indigo-500/10 border border-transparent"
                     }`}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                {token && user && (user.role === "manager" || user.role === "admin") && (
-                  <Link
-                    to="/manage"
-                    className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                      location.pathname === "/manage"
-                        ? "bg-purple-500/15 text-purple-300 border border-purple-500/20"
-                        : "text-purple-400/70 hover:text-purple-300 hover:bg-purple-500/10 border border-transparent"
+                >
+                  Dashboard
+                </Link>
+              )}
+              {token && user && (user.role === "manager" || user.role === "admin") && (
+                <Link
+                  to="/manage"
+                  className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${location.pathname === "/manage"
+                      ? "bg-purple-500/15 text-purple-300 border border-purple-500/20"
+                      : "text-purple-400/70 hover:text-purple-300 hover:bg-purple-500/10 border border-transparent"
                     }`}
-                  >
-                    Manage
-                  </Link>
-                )}
-                {token && user && user.role === "admin" && (
-                  <Link
-                    to="/admin"
-                    className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                      location.pathname === "/admin"
-                        ? "bg-red-500/15 text-red-300 border border-red-500/20"
-                        : "text-red-400/70 hover:text-red-300 hover:bg-red-500/10 border border-transparent"
+                >
+                  Manage
+                </Link>
+              )}
+              {token && user && user.role === "admin" && (
+                <Link
+                  to="/admin"
+                  className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${location.pathname === "/admin"
+                      ? "bg-red-500/15 text-red-300 border border-red-500/20"
+                      : "text-red-400/70 hover:text-red-300 hover:bg-red-500/10 border border-transparent"
                     }`}
-                  >
-                    Admin
-                  </Link>
-                )}
+                >
+                  Admin
+                </Link>
+              )}
               <div className="flex items-center gap-1.5 px-3 py-2 mt-1 border-t border-white/[0.06]">
                 <button onClick={toggleDarkMode} className="text-sm px-2.5 py-1.5 rounded bg-white/[0.04] border border-white/[0.06]">
                   {darkMode ? "\u2600\uFE0F" : "\uD83C\uDF19"}
@@ -316,19 +307,19 @@ export default function App() {
           <Route path="/codechef/:username" element={<EnhancedCodeChefStats />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/problem-of-day" element={<ProblemOfTheDay />} />
-            <Route path="/contests" element={<ContestCalendar />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/community/:id" element={<PostDetail />} />
-              <Route path="/profile/:userId" element={<PublicProfile />} />
-              <Route path="/companies" element={<Companies />} />
-            <Route path="/companies/:slug" element={<CompanyDetails />} />
-            <Route path="/practice" element={<DSAPractice />} />
-            <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
+          <Route path="/contests" element={<ContestCalendar />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/:id" element={<PostDetail />} />
+          <Route path="/profile/:userId" element={<PublicProfile />} />
+          <Route path="/companies" element={<Companies />} />
+          <Route path="/companies/:slug" element={<CompanyDetails />} />
+          <Route path="/practice" element={<DSAPractice />} />
+          <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
           <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
           <Route path="/onboarding" element={token ? <Onboarding /> : <Navigate to="/login" />} />
-            <Route path="/dashboard" element={token ? <UserDashboard /> : <Navigate to="/login" />} />
-            <Route path="/manage" element={token ? <ManagerPanel /> : <Navigate to="/login" />} />
-            <Route path="/admin" element={token ? <AdminPanel /> : <Navigate to="/login" />} />
+          <Route path="/dashboard" element={token ? <UserDashboard /> : <Navigate to="/login" />} />
+          <Route path="/manage" element={token ? <ManagerPanel /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={token ? <AdminPanel /> : <Navigate to="/login" />} />
           <Route
             path="*"
             element={
