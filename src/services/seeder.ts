@@ -4,6 +4,7 @@ import { College } from "../models/College";
 import { AuthUser } from "../models/AuthUser";
 import { popularCompanies } from "../data/seedCompanies";
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 /* ===================== DEFAULT COLLEGES ===================== */
 const DEFAULT_COLLEGES = [
@@ -59,6 +60,34 @@ export async function seedColleges(): Promise<void> {
   }
 }
 
+/* ===================== SEED ADMIN USER ===================== */
+export async function seedAdmin(): Promise<void> {
+  try {
+    const existing = await AuthUser.findOne({ email: "admin@cpulse.com" });
+    if (existing) {
+      // Ensure role is admin
+      if (existing.role !== "admin") {
+        existing.role = "admin";
+        await existing.save();
+        console.log("Admin role updated.");
+      }
+      return;
+    }
+
+    const hashed = await bcrypt.hash("admin123", 10);
+    await AuthUser.create({
+      email: "admin@cpulse.com",
+      password: hashed,
+      displayName: "CPulse Admin",
+      role: "admin",
+      onboarded: true,
+    });
+    console.log("Admin user created: admin@cpulse.com / admin123");
+  } catch (err: any) {
+    console.error("ADMIN SEED ERROR:", err.message);
+  }
+}
+
 /**
  * Auto-create college from a CP profile institution name if it doesn't exist.
  * Returns the college ID if found/created, null otherwise.
@@ -107,63 +136,66 @@ export async function findOrCreateCollegeFromInstitution(institution: string): P
 }
 
 export const seedDatabase = async () => {
-    try {
-        console.log("Seeding database...");
+  try {
+    console.log("Seeding database...");
 
-        // Seed colleges first
-        await seedColleges();
+    // Seed colleges first
+    await seedColleges();
 
-        console.log("Seeding companies database...");
-        let createdCount = 0;
+    // Seed admin user
+    await seedAdmin();
 
-        for (const companyData of popularCompanies) {
-            // 1. Create Company
-            const slug = companyData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    console.log("Seeding companies database...");
+    let createdCount = 0;
 
-            let company = await Company.findOne({ slug });
+    for (const companyData of popularCompanies) {
+      // 1. Create Company
+      const slug = companyData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-            if (!company) {
-                company = new Company({
-                    name: companyData.name,
-                    slug,
-                    logo: companyData.logo,
-                    description: `Top interview questions asked by ${companyData.name}`,
-                });
-                await company.save();
-                createdCount++;
-            } else {
-                // Update logo if missing or changed
-                if (companyData.logo && company.logo !== companyData.logo) {
-                    company.logo = companyData.logo;
-                    await company.save();
-                }
-            }
+      let company = await Company.findOne({ slug });
 
-            // 2. Add Problems
-            for (const item of companyData.items) {
-                const exists = await CompanyProblem.findOne({
-                    companyId: company._id,
-                    problemUrl: item.url,
-                });
-
-                if (!exists) {
-                    await CompanyProblem.create({
-                        companyId: company._id,
-                        problemTitle: item.title,
-                        problemUrl: item.url,
-                        platform: item.url.includes("leetcode") ? "leetcode" :
-                            item.url.includes("codeforces") ? "codeforces" : "codechef",
-                        difficulty: item.difficulty,
-                        tags: item.tags,
-                        dateAsked: new Date(),
-                        notes: "Popular interview question",
-                    });
-                }
-            }
+      if (!company) {
+        company = new Company({
+          name: companyData.name,
+          slug,
+          logo: companyData.logo,
+          description: `Top interview questions asked by ${companyData.name}`,
+        });
+        await company.save();
+        createdCount++;
+      } else {
+        // Update logo if missing or changed
+        if (companyData.logo && company.logo !== companyData.logo) {
+          company.logo = companyData.logo;
+          await company.save();
         }
+      }
 
-        console.log(`Database seeded successfully with ${createdCount} new companies!`);
-    } catch (error: any) {
-        console.error("SEED ERROR:", error.message);
+      // 2. Add Problems
+      for (const item of companyData.items) {
+        const exists = await CompanyProblem.findOne({
+          companyId: company._id,
+          problemUrl: item.url,
+        });
+
+        if (!exists) {
+          await CompanyProblem.create({
+            companyId: company._id,
+            problemTitle: item.title,
+            problemUrl: item.url,
+            platform: item.url.includes("leetcode") ? "leetcode" :
+              item.url.includes("codeforces") ? "codeforces" : "codechef",
+            difficulty: item.difficulty,
+            tags: item.tags,
+            dateAsked: new Date(),
+            notes: "Popular interview question",
+          });
+        }
+      }
     }
+
+    console.log(`Database seeded successfully with ${createdCount} new companies!`);
+  } catch (error: any) {
+    console.error("SEED ERROR:", error.message);
+  }
 };

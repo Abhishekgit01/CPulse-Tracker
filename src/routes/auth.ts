@@ -144,6 +144,51 @@ router.post("/login", async (req, res) => {
   }
 });
 
+/* -------- RESET PASSWORD -------- */
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await AuthUser.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.json({
+        message: "If an account with that email exists, a new password has been generated.",
+        success: true,
+        newPassword: null
+      });
+    }
+
+    // Generate a simple random password
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let newPassword = "";
+    for (let i = 0; i < 10; i++) {
+      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Hash and save the new password
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    // NOTE: In production, you would send this via email instead of returning it
+    // For now, we return it directly since email is not configured
+    res.json({
+      message: "Password has been reset successfully!",
+      success: true,
+      newPassword: newPassword,
+      note: "Please save this password and change it after logging in."
+    });
+  } catch (err) {
+    console.error("RESET PASSWORD ERROR:", err);
+    res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
 /* -------- GET CURRENT USER -------- */
 router.get("/me", requireAuth, async (req, res) => {
   try {
