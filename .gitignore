@@ -42,6 +42,12 @@ verify.js
 debug-routes.ts
 temp.txt
 $null
+_commit_msg.txt
+_verify_*.js
+_tmp_*.js
+*.log
+debug.log
+bun.lock
 
 # Orchids internal
 .orchids/
