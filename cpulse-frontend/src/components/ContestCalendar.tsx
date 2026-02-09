@@ -132,7 +132,7 @@ export default function ContestCalendar() {
           next.delete(id);
           return next;
         });
-      } catch {}
+      } catch { }
     } else {
       // save
       try {
@@ -145,7 +145,7 @@ export default function ContestCalendar() {
           url: contest.url,
         });
         setSavedIds((prev) => new Set(prev).add(id));
-      } catch {}
+      } catch { }
     }
   };
 
@@ -176,7 +176,7 @@ export default function ContestCalendar() {
       if (res.data.success) {
         setSavedHackIds(new Set(res.data.hackathons.map((h: any) => h.hackathonId)));
       }
-    } catch {}
+    } catch { }
   }, [token]);
 
   /* ---------- Toggle hackathon bookmark ---------- */
@@ -190,7 +190,7 @@ export default function ContestCalendar() {
           next.delete(hack.id);
           return next;
         });
-      } catch {}
+      } catch { }
     } else {
       try {
         await api.post("/api/hackathons/saved", {
@@ -203,7 +203,7 @@ export default function ContestCalendar() {
           location: hack.location,
         });
         setSavedHackIds((prev) => new Set(prev).add(hack.id));
-      } catch {}
+      } catch { }
     }
   };
 
@@ -282,8 +282,21 @@ export default function ContestCalendar() {
 
   if (loading && activeTab === "upcoming") {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="h-12 w-64 skeleton rounded-xl mb-4"></div>
+          <div className="h-6 w-96 skeleton rounded-lg"></div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 skeleton rounded-xl"></div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-48 skeleton rounded-2xl"></div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -319,22 +332,20 @@ export default function ContestCalendar() {
         <div className="flex gap-2 mt-6 mb-6">
           <button
             onClick={() => setActiveTab("upcoming")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === "upcoming"
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                : "bg-gray-800/50 border border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/20"
-            }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === "upcoming"
+              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+              : "bg-gray-800/50 border border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/20"
+              }`}
           >
             <Calendar size={16} />
             Contests
           </button>
           <button
             onClick={() => setActiveTab("hackathons")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === "hackathons"
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                : "bg-gray-800/50 border border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/20"
-            }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === "hackathons"
+              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+              : "bg-gray-800/50 border border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/20"
+              }`}
           >
             <Rocket size={16} />
             Hackathons
@@ -346,11 +357,10 @@ export default function ContestCalendar() {
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === "history"
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                : "bg-gray-800/50 border border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/20"
-            }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === "history"
+              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+              : "bg-gray-800/50 border border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/20"
+              }`}
           >
             <Trophy size={16} />
             History
@@ -391,11 +401,10 @@ export default function ContestCalendar() {
                 <button
                   key={platform}
                   onClick={() => setSelectedPlatform(platform)}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    selectedPlatform === platform
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${selectedPlatform === platform
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
+                    }`}
                 >
                   {platform.charAt(0).toUpperCase() + platform.slice(1)}
                   {platform !== "all" && (
@@ -456,70 +465,70 @@ export default function ContestCalendar() {
         </>
       )}
 
-        {/* =================== HACKATHONS TAB =================== */}
-        {activeTab === "hackathons" && (
-          <>
-            {/* Search Bar */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search hackathons by name, theme, location..."
-                value={hackSearch}
-                onChange={(e) => setHackSearch(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 text-sm"
-              />
-            </div>
+      {/* =================== HACKATHONS TAB =================== */}
+      {activeTab === "hackathons" && (
+        <>
+          {/* Search Bar */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search hackathons by name, theme, location..."
+              value={hackSearch}
+              onChange={(e) => setHackSearch(e.target.value)}
+              className="w-full px-4 py-2.5 bg-gray-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 text-sm"
+            />
+          </div>
 
-            {/* Source Filter */}
-            <div className="mb-4 flex items-center gap-3">
-              <Filter size={20} className="text-gray-500" />
-              <div className="flex flex-wrap gap-2">
-                {["all", "devfolio", "mlh", "devpost", "unstop"].map((source) => (
-                  <button
-                    key={source}
-                    onClick={() => setHackFilter(source)}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${
-                      hackFilter === source
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
+          {/* Source Filter */}
+          <div className="mb-4 flex items-center gap-3">
+            <Filter size={20} className="text-gray-500" />
+            <div className="flex flex-wrap gap-2">
+              {["all", "devfolio", "mlh", "devpost", "unstop"].map((source) => (
+                <button
+                  key={source}
+                  onClick={() => setHackFilter(source)}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${hackFilter === source
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
                     }`}
-                  >
-                    {source === "all"
-                      ? "All Sources"
-                      : source.charAt(0).toUpperCase() + source.slice(1)}
-                    {source !== "all" && (
-                      <span className="ml-2 text-xs opacity-70">
-                        ({hackathons.filter((h) => h.source === source).length})
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
+                >
+                  {source === "all"
+                    ? "All Sources"
+                    : source.charAt(0).toUpperCase() + source.slice(1)}
+                  {source !== "all" && (
+                    <span className="ml-2 text-xs opacity-70">
+                      ({hackathons.filter((h) => h.source === source).length})
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* Location Filter */}
-            <div className="mb-6 flex items-center gap-3">
-              <MapPin size={20} className="text-gray-500" />
-              <div className="flex flex-wrap gap-2">
-                {["all", "bengaluru", "delhi", "mumbai", "hyderabad", "chennai"].map((loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => setLocationFilter(loc)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                      locationFilter === loc
-                        ? "bg-purple-600 text-white shadow-md"
-                        : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
+          {/* Location Filter */}
+          <div className="mb-6 flex items-center gap-3">
+            <MapPin size={20} className="text-gray-500" />
+            <div className="flex flex-wrap gap-2">
+              {["all", "bengaluru", "delhi", "mumbai", "hyderabad", "chennai"].map((loc) => (
+                <button
+                  key={loc}
+                  onClick={() => setLocationFilter(loc)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${locationFilter === loc
+                    ? "bg-purple-600 text-white shadow-md"
+                    : "bg-gray-800/50 border border-white/10 text-gray-300 hover:bg-gray-700/50"
                     }`}
-                  >
-                    {loc === "all" ? "All Locations" : loc.charAt(0).toUpperCase() + loc.slice(1)}
-                  </button>
-                ))}
-              </div>
+                >
+                  {loc === "all" ? "All Locations" : loc.charAt(0).toUpperCase() + loc.slice(1)}
+                </button>
+              ))}
             </div>
+          </div>
 
           {hackLoading && (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-64 skeleton rounded-2xl"></div>
+              ))}
             </div>
           )}
 
@@ -537,19 +546,19 @@ export default function ContestCalendar() {
             </div>
           )}
 
-            {!hackLoading && filteredHackathons.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredHackathons.map((hack) => (
-                  <HackathonCard
-                    key={hack.id}
-                    hackathon={hack}
-                    isSaved={savedHackIds.has(hack.id)}
-                    onToggleSave={token ? toggleSaveHackathon : undefined}
-                    showBookmark={!!token}
-                  />
-                ))}
-              </div>
-            )}
+          {!hackLoading && filteredHackathons.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredHackathons.map((hack) => (
+                <HackathonCard
+                  key={hack.id}
+                  hackathon={hack}
+                  isSaved={savedHackIds.has(hack.id)}
+                  onToggleSave={token ? toggleSaveHackathon : undefined}
+                  showBookmark={!!token}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
 
@@ -731,11 +740,10 @@ function HackathonCard({
           {showBookmark && onToggleSave && (
             <button
               onClick={() => onToggleSave(hackathon)}
-              className={`px-3 py-2.5 rounded-xl border transition-all ${
-                isSaved
-                  ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-400"
-                  : "bg-gray-800/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20"
-              }`}
+              className={`px-3 py-2.5 rounded-xl border transition-all ${isSaved
+                ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-400"
+                : "bg-gray-800/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+                }`}
               title={isSaved ? "Remove bookmark" : "Bookmark"}
             >
               <Bookmark size={16} className={isSaved ? "fill-current" : ""} />
