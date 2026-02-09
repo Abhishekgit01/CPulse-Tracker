@@ -34,13 +34,13 @@ const Icons = {
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
   ),
   Globe: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
   ),
   Brain: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" /><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" /><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" /><path d="M17.599 6.5a3 3 0 0 0 .399-1.375" /><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5" /><path d="M3.477 10.896a4 4 0 0 1 .585-.396" /><path d="M19.938 10.5a4 4 0 0 1 .585.396" /><path d="M6 18a4 4 0 0 1-1.967-.516" /><path d="M19.967 17.484A4 4 0 0 1 18 18" /></svg>
   ),
   Target: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>
   ),
 };
 
@@ -171,28 +171,28 @@ export default function Home() {
             Live Leaderboards Active
           </div>
 
-              <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8 text-center leading-[1.1]">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-500 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
-                  CPulse
-                </span>{" "}
-                <span className="inline-block min-w-[7ch] text-left align-baseline">
-                  <RotatingText
-                    texts={[
-                      "Tracker",
-                      "Radar",
-                      "Engine",
-                      "Hub",
-                    ]}
-                    mainClassName="overflow-hidden inline-flex"
-                    elementLevelClassName="text-indigo-400"
-                    staggerFrom="first"
-                    staggerDuration={0.03}
-                    rotationInterval={3000}
-                    splitBy="characters"
-                    transition={{ type: "spring", damping: 30, stiffness: 200 }}
-                  />
-                </span>
-              </h1>
+          <h1 className="max-w-5xl mx-auto text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8 text-center leading-[1.1]">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-500 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+              CPulse
+            </span>{" "}
+            <span className="text-indigo-400">
+              <RotatingText
+                texts={[
+                  "Tracker",
+                  "Radar",
+                  "Engine",
+                  "Hub",
+                ]}
+                mainClassName="inline-flex justify-center"
+                elementLevelClassName="text-indigo-400"
+                staggerFrom="first"
+                staggerDuration={0.03}
+                rotationInterval={3000}
+                splitBy="characters"
+                transition={{ type: "spring", damping: 30, stiffness: 200 }}
+              />
+            </span>
+          </h1>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-12 leading-relaxed">
             The ultimate dashboard for competitive programmers. Track performance across <span className="text-white font-bold underline decoration-indigo-500 decoration-2 underline-offset-4">Codeforces</span>, <span className="text-white font-bold underline decoration-yellow-600 decoration-2 underline-offset-4">CodeChef</span> and <span className="text-white font-bold underline decoration-purple-500 decoration-2 underline-offset-4">LeetCode</span>.
