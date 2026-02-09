@@ -28,7 +28,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "node ./node_modules/react-scripts/scripts/build.js"
+    "build": "react-scripts build"
   },
   "browserslist": {
     "production": [

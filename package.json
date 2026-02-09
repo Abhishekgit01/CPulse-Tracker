@@ -8,7 +8,8 @@
     "start": "ts-node src/index.ts",
     "compile": "node node_modules/typescript/bin/tsc",
     "build": "npm --prefix cpulse-frontend run build",
-    "vercel-build": "npm run compile && npm run build"
+    "vercel-build": "npm run compile && npm run build",
+    "postinstall": "npm install --prefix cpulse-frontend"
   },
   "repository": {
     "type": "git",
