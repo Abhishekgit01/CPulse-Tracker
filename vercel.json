@@ -1,6 +1,6 @@
 {
   "installCommand": "npm install && npm --prefix cpulse-frontend install",
-  "buildCommand": "tsc && npm --prefix cpulse-frontend run build",
+  "buildCommand": "npx tsc && npm --prefix cpulse-frontend run build",
   "outputDirectory": "cpulse-frontend/build",
   "rewrites": [
     {
