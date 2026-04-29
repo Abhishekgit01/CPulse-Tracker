@@ -26,9 +26,21 @@ This repository contains both the backend API and the frontend app.
 
 ```text
 .
-├── api/                  # Vercel serverless entrypoint
-├── src/                  # Express API, models, services, routes
+├── backend/
+│   ├── api/              # Vercel serverless entrypoint
+│   ├── src/
+│   │   ├── app.ts        # Express app setup
+│   │   ├── server.ts     # Local server entrypoint
+│   │   ├── config/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   └── services/
+│   ├── .env.example
+│   ├── nodemon.json
+│   └── tsconfig.json
 ├── cpulse-frontend/      # React frontend
+├── package.json          # Root scripts for backend + frontend
 ├── vercel.json           # Root Vercel routing for backend
 └── cpulse-frontend/vercel.json
 ```
@@ -64,10 +76,10 @@ npm install
 
 ### 2. Configure backend environment
 
-Create a root `.env` file from `.env.example`.
+Create `backend/.env` from `backend/.env.example`.
 
 ```bash
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
 Set these values:
@@ -125,10 +137,15 @@ The frontend runs on `http://localhost:3000`.
 From the repo root:
 
 ```bash
-npm run dev        # start backend with nodemon
-npm run start      # start backend with ts-node
-npm run compile    # TypeScript compile check for backend
-npm run build      # frontend production build
+npm run dev             # start backend with nodemon
+npm run dev:backend     # same as above
+npm run dev:frontend    # start frontend from root
+npm run start           # start backend with ts-node
+npm run compile         # TypeScript compile check for backend
+npm run build           # frontend production build
+npm run build:backend   # alias for backend compile
+npm run build:frontend  # explicit frontend build
+npm run recalculate     # recalculate CPulse ratings
 ```
 
 From `cpulse-frontend/`:
@@ -141,17 +158,21 @@ npm run build      # production build
 ## Important project notes
 
 - The backend connects to MongoDB lazily and reuses the connection.
-- On a fresh database connection, seed logic runs from `src/services/seeder.ts`.
+- On a fresh database connection, seed logic runs from `backend/src/services/seeder.ts`.
 - The frontend uses `REACT_APP_API_URL` for all API requests.
-- Vercel deployment support is already wired through `api/index.ts`, root `vercel.json`, and `cpulse-frontend/vercel.json`.
+- The backend now lives entirely under `backend/`, while the root package keeps shared scripts for local development.
+- The backend is split into app setup, route registration, middleware, and services so the request flow is easier to follow.
+- Vercel deployment support is wired through `backend/api/index.ts`, root `vercel.json`, and `cpulse-frontend/vercel.json`.
 
 ## Where to look in the code
 
-- Backend entrypoint: `src/index.ts`
-- Mongo connection: `src/db/mongo.ts`
-- Scrapers and platform services: `src/services/`
-- API routes: `src/routes/`
-- Mongoose models: `src/models/`
+- Local backend entrypoint: `backend/src/server.ts`
+- Express app setup: `backend/src/app.ts`
+- Route registration: `backend/src/routes/index.ts`
+- Mongo connection: `backend/src/db/mongo.ts`
+- Scrapers and platform services: `backend/src/services/`
+- API routes: `backend/src/routes/`
+- Mongoose models: `backend/src/models/`
 - Frontend routing: `cpulse-frontend/src/App.tsx`
 - Frontend API client: `cpulse-frontend/src/api/axios.ts`
 
